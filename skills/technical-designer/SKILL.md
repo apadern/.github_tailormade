@@ -35,6 +35,8 @@ Recomendados (mejoran calidad del diseño):
 
 - Ver [references/frontend-template-structure.md](references/frontend-template-structure.md) para estructura frontend
 - Ver [references/backend-template-structure.md](references/backend-template-structure.md) para estructura backend
+- Ver [references/ABAP-template-structure.md](references/ABAP-template-structure.md) para estructura ABAP
+
 
 ## Stack Tecnológico (Fijo)
 
@@ -60,7 +62,7 @@ Generar `design/01_technical_design.md` con exactamente estas 3 secciones:
 Máximo 15 líneas describiendo alcance y enfoque.
 
 **Incluir obligatoriamente (sin crear secciones adicionales):**
-- Alcance / no-alcance del MVP (frontend web + backend REST).
+- Alcance / no-alcance del MVP (frontend UI5 + backend CAP + backend ABAP).
 - Supuestos del MVP: persistencia en PostgreSQL, seguridad (SSO SAML2 y control de acceso por rol), documentación OpenAPI, e integraciones con WordAid/SAP si están en alcance.
 - Modelo dual frontend: por defecto **frontend-only (servicios mock)** y opción de ejecutar contra backend sin cambiar pantallas.
 - Referencias cruzadas:
