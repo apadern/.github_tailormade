@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+  id="Definitions_TEMPLATE"
+  targetNamespace="https://nttdata.com/iberdrola/mvp-v2/analisis/bpmn"
+  exporter="Camunda Modeler"
+  exporterVersion="5.43.1">
+
+  <!--
+    TEMPLATE (Camunda Modeler).
+
+    Placeholders sugeridos:
+      - {{PROCESS_ID}}, {{PROCESS_NAME}}
+      - {{PROCESS_DOC}}
+      - {{SUBPROCESS_ID}}, {{SUBPROCESS_NAME}}
+      - {{LANE_ROLE_1}}, {{LANE_ROLE_2}} (nombres de roles tal cual en analisis/02_actores_y_roles.md)
+  -->
+
+  <bpmn:process id="Process_TEMPLATE" name="{{PROCESS_NAME}}" isExecutable="true">
+    <bpmn:documentation>{{PROCESS_DOC}}</bpmn:documentation>
+
+    <bpmn:laneSet id="LaneSet_01">
+      <bpmn:lane id="Lane_Sistema" name="{{LANE_ROLE_1}}">
+        <bpmn:flowNodeRef>StartEvent_01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SubProcess_TEMPLATE</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Operador" name="{{LANE_ROLE_2}}">
+        <bpmn:flowNodeRef>Task_User_01</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_01</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="StartEvent_01" name="Inicio">
+      <bpmn:outgoing>Flow_01</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <!-- Subproceso (se verá COLAPSADO en el diagrama principal) -->
+    <bpmn:subProcess id="SubProcess_TEMPLATE" name="{{SUBPROCESS_NAME}}">
+      <bpmn:incoming>Flow_01</bpmn:incoming>
+      <bpmn:outgoing>Flow_02</bpmn:outgoing>
+
+      <!-- Detalle interno del subproceso -->
+      <bpmn:startEvent id="StartEvent_Sub1" name="Inicio">
+        <bpmn:outgoing>Flow_Sub1_01</bpmn:outgoing>
+      </bpmn:startEvent>
+
+      <bpmn:task id="Task_Sub1_01" name="Paso automático">
+        <bpmn:incoming>Flow_Sub1_01</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub1_02</bpmn:outgoing>
+      </bpmn:task>
+
+      <bpmn:exclusiveGateway id="Gateway_Sub1_01" name="¿Condición?">
+        <bpmn:incoming>Flow_Sub1_02</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub1_03</bpmn:outgoing>
+        <bpmn:outgoing>Flow_Sub1_04</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+
+      <bpmn:task id="Task_Sub1_02" name="Rama Sí">
+        <bpmn:incoming>Flow_Sub1_03</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub1_05</bpmn:outgoing>
+      </bpmn:task>
+
+      <bpmn:task id="Task_Sub1_03" name="Rama No">
+        <bpmn:incoming>Flow_Sub1_04</bpmn:incoming>
+        <bpmn:outgoing>Flow_Sub1_06</bpmn:outgoing>
+      </bpmn:task>
+
+      <bpmn:endEvent id="EndEvent_Sub1_Si" name="Fin (Sí)">
+        <bpmn:incoming>Flow_Sub1_05</bpmn:incoming>
+      </bpmn:endEvent>
+
+      <bpmn:endEvent id="EndEvent_Sub1_No" name="Fin (No)">
+        <bpmn:incoming>Flow_Sub1_06</bpmn:incoming>
+      </bpmn:endEvent>
+
+      <bpmn:sequenceFlow id="Flow_Sub1_01" sourceRef="StartEvent_Sub1" targetRef="Task_Sub1_01" />
+      <bpmn:sequenceFlow id="Flow_Sub1_02" sourceRef="Task_Sub1_01" targetRef="Gateway_Sub1_01" />
+      <bpmn:sequenceFlow id="Flow_Sub1_03" name="Sí" sourceRef="Gateway_Sub1_01" targetRef="Task_Sub1_02" />
+      <bpmn:sequenceFlow id="Flow_Sub1_04" name="No" sourceRef="Gateway_Sub1_01" targetRef="Task_Sub1_03" />
+      <bpmn:sequenceFlow id="Flow_Sub1_05" sourceRef="Task_Sub1_02" targetRef="EndEvent_Sub1_Si" />
+      <bpmn:sequenceFlow id="Flow_Sub1_06" sourceRef="Task_Sub1_03" targetRef="EndEvent_Sub1_No" />
+    </bpmn:subProcess>
+
+    <bpmn:userTask id="Task_User_01" name="Paso manual (P-XXX)">
+      <bpmn:incoming>Flow_02</bpmn:incoming>
+      <bpmn:outgoing>Flow_03</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="EndEvent_01" name="Fin">
+      <bpmn:incoming>Flow_03</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_01" sourceRef="StartEvent_01" targetRef="SubProcess_TEMPLATE" />
+    <bpmn:sequenceFlow id="Flow_02" sourceRef="SubProcess_TEMPLATE" targetRef="Task_User_01" />
+    <bpmn:sequenceFlow id="Flow_03" sourceRef="Task_User_01" targetRef="EndEvent_01" />
+  </bpmn:process>
+
+  <!-- Diagrama principal: lanes + SOLO nivel superior. -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_01">
+    <bpmndi:BPMNPlane id="BPMNPlane_01" bpmnElement="Process_TEMPLATE">
+      <bpmndi:BPMNShape id="Shape_Lane_Sistema" bpmnElement="Lane_Sistema" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1100" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Lane_Operador" bpmnElement="Lane_Operador" isHorizontal="true">
+        <dc:Bounds x="160" y="280" width="1100" height="200" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_StartEvent_01" bpmnElement="StartEvent_01">
+        <dc:Bounds x="212" y="160" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_SubProcess_01" bpmnElement="SubProcess_TEMPLATE" isExpanded="false">
+        <dc:Bounds x="320" y="140" width="240" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_User_01" bpmnElement="Task_User_01">
+        <dc:Bounds x="650" y="330" width="240" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EndEvent_01" bpmnElement="EndEvent_01">
+        <dc:Bounds x="980" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_01" bpmnElement="Flow_01">
+        <di:waypoint x="248" y="178" />
+        <di:waypoint x="320" y="178" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_02" bpmnElement="Flow_02">
+        <di:waypoint x="560" y="180" />
+        <di:waypoint x="560" y="370" />
+        <di:waypoint x="650" y="370" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_03" bpmnElement="Flow_03">
+        <di:waypoint x="890" y="370" />
+        <di:waypoint x="980" y="370" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+  <!-- Drill-down: diagrama del subproceso (plane apunta al ID del subproceso). -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Sub1">
+    <bpmndi:BPMNPlane id="BPMNPlane_Sub1" bpmnElement="SubProcess_TEMPLATE">
+      <bpmndi:BPMNShape id="Shape_StartEvent_Sub1" bpmnElement="StartEvent_Sub1">
+        <dc:Bounds x="180" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_Sub1_01" bpmnElement="Task_Sub1_01">
+        <dc:Bounds x="280" y="180" width="140" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Gateway_Sub1_01" bpmnElement="Gateway_Sub1_01" isMarkerVisible="true">
+        <dc:Bounds x="480" y="195" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_Sub1_02" bpmnElement="Task_Sub1_02">
+        <dc:Bounds x="600" y="140" width="140" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_Task_Sub1_03" bpmnElement="Task_Sub1_03">
+        <dc:Bounds x="600" y="260" width="140" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EndEvent_Sub1_Si" bpmnElement="EndEvent_Sub1_Si">
+        <dc:Bounds x="802" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Shape_EndEvent_Sub1_No" bpmnElement="EndEvent_Sub1_No">
+        <dc:Bounds x="802" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_01" bpmnElement="Flow_Sub1_01">
+        <di:waypoint x="216" y="218" />
+        <di:waypoint x="280" y="218" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_02" bpmnElement="Flow_Sub1_02">
+        <di:waypoint x="420" y="220" />
+        <di:waypoint x="480" y="220" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_03" bpmnElement="Flow_Sub1_03">
+        <di:waypoint x="505" y="195" />
+        <di:waypoint x="505" y="180" />
+        <di:waypoint x="600" y="180" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_04" bpmnElement="Flow_Sub1_04">
+        <di:waypoint x="505" y="245" />
+        <di:waypoint x="505" y="300" />
+        <di:waypoint x="600" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_05" bpmnElement="Flow_Sub1_05">
+        <di:waypoint x="740" y="180" />
+        <di:waypoint x="802" y="180" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Edge_Flow_Sub1_06" bpmnElement="Flow_Sub1_06">
+        <di:waypoint x="740" y="300" />
+        <di:waypoint x="802" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>
