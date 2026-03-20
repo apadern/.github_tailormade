@@ -1,0 +1,30 @@
+<blue:wbobj xmlns:blue="http://www.sap.com/wbobj/dictionary/dtel" xmlns:adtcore="http://www.sap.com/adt/core" adtcore:responsible="USER_NAME" adtcore:masterLanguage="EN" adtcore:masterSystem="SYSTEM_ID" adtcore:abapLanguageVersion="0" adtcore:name="ZFI_E_TYPE" adtcore:type="DTEL/DE" adtcore:description="description" adtcore:language="EN">
+<adtcore:packageRef adtcore:name="$TMP" adtcore:type="DEVC/K"/>
+<dtel:dataElement xmlns:dtel="http://www.sap.com/adt/dictionary/dataelements">
+<dtel:typeKind>predefinedAbapType</dtel:typeKind>
+<dtel:typeName/>
+<dtel:dataType>CHAR</dtel:dataType>
+<dtel:dataTypeLength>000010</dtel:dataTypeLength>
+<dtel:dataTypeDecimals>000000</dtel:dataTypeDecimals>
+<dtel:shortFieldLabel>Type</dtel:shortFieldLabel>
+<dtel:shortFieldLength>10</dtel:shortFieldLength>
+<dtel:shortFieldMaxLength>10</dtel:shortFieldMaxLength>
+<dtel:mediumFieldLabel>Type</dtel:mediumFieldLabel>
+<dtel:mediumFieldLength>20</dtel:mediumFieldLength>
+<dtel:mediumFieldMaxLength>20</dtel:mediumFieldMaxLength>
+<dtel:longFieldLabel>Type</dtel:longFieldLabel>
+<dtel:longFieldLength>30</dtel:longFieldLength>
+<dtel:longFieldMaxLength>40</dtel:longFieldMaxLength>
+<dtel:headingFieldLabel>Type</dtel:headingFieldLabel>
+<dtel:headingFieldLength>40</dtel:headingFieldLength>
+<dtel:headingFieldMaxLength>55</dtel:headingFieldMaxLength>
+<dtel:searchHelp/>
+<dtel:searchHelpParameter/>
+<dtel:setGetParameter/>
+<dtel:defaultComponentName/>
+<dtel:deactivateInputHistory>false</dtel:deactivateInputHistory>
+<dtel:changeDocument>false</dtel:changeDocument>
+<dtel:leftToRightDirection>false</dtel:leftToRightDirection>
+<dtel:deactivateBIDIFiltering>false</dtel:deactivateBIDIFiltering>
+</dtel:dataElement>
+</blue:wbobj>
