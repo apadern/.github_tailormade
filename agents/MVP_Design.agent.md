@@ -1,6 +1,6 @@
 ---
-description: 'Basado en el análisis funcional, genera el diseño técnico y el backlog de tareas para un MVP que incluye frontend web y backend java.'
-tools: ['execute', 'read', 'edit', 'search', 'agent', 'todo']
+description: 'Basado en el análisis funcional, genera el diseño técnico y el backlog de tareas para un MVP que incluye frontend SAP UI5 y backend CAP/ABAP.'
+tools: [execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/searchSubagent, search/usages, mcp-sap-docs/abap_feature_matrix, mcp-sap-docs/fetch, mcp-sap-docs/sap_community_search, mcp-sap-docs/sap_get_object_details, mcp-sap-docs/sap_search_objects, mcp-sap-docs/search, mcp-abap/abap_feature_matrix, mcp-abap/abap_lint, mcp-abap/fetch, mcp-abap/sap_community_search, mcp-abap/sap_get_object_details, mcp-abap/sap_search_objects, mcp-abap/search, todo]
 ---
 
 # MVP Design Agent
@@ -37,13 +37,20 @@ Requiere análisis funcional previo en carpeta `analisis/`:
 
 Aplicar estas reglas durante TODAS las fases (diseño, servicios y backlog) para evitar errores repetidos:
 
-- **Rutas/API y `/api`**: el backend suele usar `server.servlet.context-path=/api` (ver `backend/src/main/resources/application.yml`).
-  - En diseño (consumo): documentar endpoints como los usará el frontend (incluyendo `/api`).
-  - En implementación: no forzar `/api` dentro de `@RequestMapping` si ya existe `context-path`.
-- **Flyway**: nunca proponer “editar una migración existente”; siempre una nueva `VXX__...sql` si hay cambios.
-- **JPA/BD**: si el modelo use `numeric`, en backlog backend planificar `BigDecimal` (no `Double`). Si hay dominios Postgres, planificar `columnDefinition = "<dominio>"` en entities.
-- **Frontend TS**: no proponer `enum` en TypeScript; usar `as const` + union type.
-- **E2E/mocks**: si PF requiere casos/IDs concretos, el backlog debe incluir tareas para mocks deterministas (evitar placeholders que cambien asserts).
+- **Standard-first (OBLIGATORIO)**: antes de proponer cualquier objeto Z (tabla, CDS View, clase, función, servicio OData), el subagente **debe usar las herramientas de documentación SAP** (`mcp_mcp-sap-docs_search`, `mcp_mcp-sap-docs_sap_search_objects`, `mcp_mcp-sap-docs_sap_get_object_details`, `mcp_mcp-abap_search`) para identificar si existe una API estándar o solución estándar SAP que cubra el requisito. El flujo obligatorio es:
+  1. Buscar API/objeto estándar SAP mediante las herramientas MCP de documentación.
+  2. Si existe solución estándar: documentarla en el diseño (`design/01`, `design/02_abap_data_model.md`) como objeto reutilizado, **no crear objetos Z equivalentes**.
+  3. Si no existe solución estándar o es insuficiente: justificarlo explícitamente en el documento de diseño antes de proponer objetos Z.
+  - Aplica a: BAPIs, CDS Views estándar, servicios OData estándar (Business Hub / API Marketplace), clases estándar, módulos de función estándar, tablas de customizing estándar.
+
+- **Nomenclatura ABAP/CDS**: respetar convención `Z<MOD>_<TIPO>_<NOMBRE>` en todos los objetos DDIC, CDS Views (`_R_`, `_C_`), Service Definitions (`_SV_`) y Service Bindings (`_UI_`, `_API_`). No mezclar convenios de distintos módulos.
+- **OData EntitySets**: documentar siempre el EntitySet name, las NavigationProperties y los `$expand` necesarios. En V2 (SEGW) documentar FunctionImports; en V4/RAP documentar Actions y Functions. No proponer operaciones CRUD sin verificar el nivel de draft/autorización RAP.
+- **Tablas DDIC**: nunca proponer "modificar campos existentes en tablas con datos"; siempre crear una nueva tabla custom Z o ampliar mediante append/include. Delivery class debe declararse explícitamente (`A`, `C`, `L`, `E`).
+- **RAP vs SEGW**: decidir en Fase 1 si el servicio OData usa RAP (V4) o SEGW (V2). No mezclar ambos patrones para el mismo objeto de negocio dentro de un mismo módulo.
+- **CAP (CDS/Node.js o Java)**: si el proyecto usa SAP CAP, documentar las entidades en `schema.cds`, los servicios en `service.cds` y las anotaciones Fiori en ficheros `.cds` de anotaciones. No duplicar definición de entidades entre CDS CAP y DDIC ABAP.
+- **SAPUI5 / Fiori**: las rutas UI se definen en `manifest.json` (sección `routes` y `targets`). Documentar siempre `routeName`, `pattern` y `target` en el diseño. No usar rutas relativas sin `#/` en hash-based routing.
+- **Autorización SAP**: especificar objetos de autorización (`AUTHORITY-CHECK OBJECT`) o roles IAM (RAP/CAP) para cada operación en el diseño técnico. No omitir la capa de autorización aunque sea prototipo.
+- **E2E/mocks SAPUI5**: si PF requiere casos/IDs concretos, el backlog debe incluir tareas para datos de prueba deterministas en el backend SAP (valor fijo en customizing o fixture de test) para evitar asserts que cambien entre ejecuciones.
 
 ## Flujo de Trabajo
 
@@ -53,9 +60,11 @@ Establece la arquitectura base y lista de módulos para que el resto de fases te
 
 | Subagente | Skill | Entrada | Salida |
 |-----------|-------|---------|--------|
-| `Designer_Agent` | technical-designer | analisis/01, 02, 03, 09, 10, 11, 12 (+ 04, 06, 07, 08 si aplica), 05* | design/01_technical_design.md |
+| `Designer_Agent` | technical-designer (**modo SAP/ABAP**) | analisis/01, 02, 03, 09, 10, 11, 12 (+ 04, 06, 07, 08 si aplica), 05* | design/01_technical_design.md |
 
 *05 es referencia para mapeo HU-Módulo
+
+> **Nota SAP**: el skill technical-designer debe usar el stack SAP (SAPUI5 + CAP/ABAP + OData). Consultar `references/ABAP-template-structure.md` para estructura de paquetes y objetos ABAP, `references/cap-template-structure.md` para estructura de módulos CAP y `references/UI5-template-structure.md` para estructura de aplicaciones SAP UI5. El `design/01_technical_design.md` debe incluir: paquetes SAP, rutas UI (`manifest.json` routes) y EntitySets a alto nivel, en lugar de rutas React y endpoints REST Java.
 
 ### Fase 2: Modelo de Datos
 
@@ -63,17 +72,23 @@ Depende de: Fase 1 (design/01 debe existir)
 
 | Subagente | Skill | Entrada | Salida |
 |-----------|-------|---------|--------|
-| `Data_Modeler_Agent` | data-modeler | **design/01**, analisis/03, 05, 10, 14 | design/02_data_model.md |
+| `ABAP_Data_Modeler_Agent` | abap-data-modeler | **design/01**, analisis/03, 05, 06, 07, 08, 10, 14 | design/02_abap_data_model.md |
+| `CAP_Data_Modeler_Agent` | cap-data-modeler | **design/01**, analisis/03, 05, 06, 07, 08, 10, 14 | design/02_cap_data_model.md |
+| `UI5_Data_Modeler_Agent` | ui5-data-modeler | **design/01**, analisis/03, 05, 06, 07, 08, 10, 14 | design/02_ui5_data_model.md |
 
-**Nota:** data-modeler ahora usa `design/01` para asegurar que las entidades se asignen a módulos válidos.
+**Nota:** abap-data-modeler genera tablas DDIC, CDS Views (Root `_R_` y Projection `_C_`), Service Definitions y Service Bindings. Usa `design/01` para alinear paquetes y módulos SAP con las entidades. CAP-data-modeler genera entidades en `schema.cds` con anotaciones de servicio. UI5-data-modeler genera modelos JSON para mockups y prototipos UI5, alineados con las entidades definidas por ABAP/CAP.
+
+> **Standard-first en modelado**: el `ABAP_Data_Modeler_Agent` debe usar las herramientas MCP SAP (`mcp_mcp-sap-docs_search`, `mcp_mcp-sap-docs_sap_search_objects`) para verificar si existen CDS Views estándar, tablas estándar o servicios OData del catálogo SAP API Business Hub que cubran cada entidad antes de definir una tabla Z. Los objetos estándar identificados se documentan en `design/02_abap_data_model.md` en una sección `## Objetos Estándar Reutilizados` indicando nombre, tipo y motivo de reutilización. Solo se define un objeto Z cuando no existe equivalente estándar suficiente, con justificación explícita.
 
 ### Fase 3: Servicios
 
-Depende de: Fase 2 (design/02 debe existir)
+Depende de: Fase 2 (design/02_abap_data_model.md debe existir)
 
 | Subagente | Skill | Entrada | Salida |
 |-----------|-------|---------|--------|
-| `Services_Designer_Agent` | services-designer | design/01, design/02, analisis/03, 09, 10, 12 (+ 05, 06, 08 si aplica) | design/03_data_services.md |
+| `Services_Designer_Agent` | services-designer (**Modo B - SAP**) | design/01, design/02_abap_data_model.md, analisis/03, 09, 10, 12 (+ 05, 06, 08 si aplica) | design/03_odata_services.md |
+
+> **Nota SAP**: el skill services-designer detecta automáticamente el Modo B al encontrar `design/02_abap_data_model.md`. Genera EntitySets OData con sus NavigationProperties, FunctionImports (V2/SEGW) o Actions/Functions (V4/RAP), y el patrón de consumo desde SAPUI5 con `sap.ui.model.odata.v2.ODataModel` o `sap.ui.model.odata.v4.ODataModel`.
 
 ### Fase 4: Validación de Diseño
 
