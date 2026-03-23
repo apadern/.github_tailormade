@@ -1,5 +1,5 @@
 ---
-description: 'Dado un Change Request (CR) genera un backlog técnico (backend+frontend) adaptado al código existente del proyecto.'
+description: 'Dado un Change Request (CR) genera un backlog técnico (backend ABAP/CAP + frontend SAPUI5) adaptado al código existente del proyecto.'
 tools: ['vscode/askQuestions', 'execute', 'read', 'agent', 'edit', 'search', 'memory', 'todo']
 ---
 
@@ -26,10 +26,10 @@ NO implementes cambios de código de la app (backend/frontend). NO crees PRs. NO
    - Skill: `.github/skills/backlog-planner/SKILL.md`
    - Plantilla: `.github/skills/backlog-planner/references/backlog-template.detallado.md`
 2. Mantener el MISMO formato y granularidad (tareas por archivo/método/acción/componente).
-3. El proyecto YA existe: **cada tarea debe estar adaptada a la realidad del repo** (frontend y backend). Esto implica:
-   - Reutilizar y referenciar artefactos existentes (si existen, no crear tareas “desde cero”).
+3. El proyecto YA existe: **cada tarea debe estar adaptada a la realidad del repo** (frontend SAPUI5 y backend ABAP/CAP). Esto implica:
+   - Reutilizar y referenciar artefactos existentes (si existen, no crear tareas "desde cero").
    - Evitar tareas para cosas ya implementadas.
-   - Usar rutas/paquetes reales del proyecto.
+   - Usar rutas/objetos ABAP/namespaces CDS/paths SAPUI5 reales del proyecto.
 4. Optimizar el uso de contexto: usar subagentes para mapear el código existente antes de redactar el backlog.
 
 ---
@@ -64,14 +64,20 @@ Flujo iterativo. No es estrictamente lineal: si aparecen ambigüedades, volver a
    - Reglas de autorización.
    - Pantallas (si aplica) y acciones UI.
    - Auditoría/logging funcional (si aplica).
-4. Normalizar identificadores:
+4. Detectar el stack tecnológico del proyecto:
+   - Buscar `design/adr/ADR-STACK-UI5-CAP.md` o ficheros de configuración en el repo para determinar el stack aprobado.
+   - Inspeccionar la estructura del repo: presencia de `db/`, `srv/` (CAP), artefactos en ABAP FS, o `webapp/manifest.json` (SAPUI5).
+   - Resultado esperado: `backendStack` = `ABAP | CAP | ABAP+CAP`.
+5. Normalizar identificadores según stack detectado:
    - `crId`: `CR-XXX` (desde el nombre del fichero si no viene explícito).
-   - `moduleSlug`: slug para frontend (kebab-case). Ej.: `admin-usuarios` o `seguridad`.
-   - `moduleKey`: para migraciones si hiciera falta (snake_case). Ej.: `admin_usuarios`.
-   - `modulePackage`: package java (segment). Ej.: `user`, `security`.
-5. Ejecutar “repo reality check” con subagentes ANTES de escribir tareas, optimizando el tiempo:
-   - Lanzar Subagente A (Backend) y Subagente B (Frontend) EN PARALELO.
-   - Lanzar Subagente C (Tests) solo si el CR requiere cambios en endpoints/pantallas, si el backlog debe incluir tests realistas, o si no hay claridad sobre el framework/patrón de tests actual.
+   - `moduleSlug`: slug para vistas SAPUI5 (kebab-case). Ej.: `gestion-materiales`, `admin-pedidos`.
+   - `moduleKey`: para nombres de entidades CDS o sufijado ABAP (snake_case/PascalCase). Ej.: `Materials`, `PurchaseOrders`.
+   - Para **ABAP**: `abapPackage` (paquete ABAP, ej.: `ZMM_PURCHASING`), `abapNamespace` (prefijo `Z`/`Y`).
+   - Para **CAP**: `cdsNamespace` (namespace CDS, ej.: `com.nttdata.materials`), `capAppPath` (ruta base en repo, ej.: `backend/`).
+   - Para **SAPUI5**: `sapui5AppId` (id en manifest.json, ej.: `com.nttdata.app.materials`), `sapui5AppPath` (ruta base, ej.: `webapp/`).
+6. Ejecutar "repo reality check" con subagentes ANTES de escribir tareas, optimizando el tiempo:
+   - Lanzar Subagente A (Backend ABAP y/o CAP) y Subagente B (Frontend SAPUI5) EN PARALELO.
+   - Lanzar Subagente C (Tests) solo si el CR requiere cambios en servicios OData/pantallas, si el backlog debe incluir tests realistas, o si no hay claridad sobre el framework/patrón de tests actual.
 
 <research_instructions>
 - Investiga usando solo herramientas de lectura/búsqueda.
@@ -83,81 +89,129 @@ Flujo iterativo. No es estrictamente lineal: si aparecen ambigüedades, volver a
 Ejecución recomendada (para ahorrar iteraciones):
 - Ejecutar A+B en paralelo → consolidar “artefactos a reutilizar/crear” → si hay dudas sobre tests, ejecutar C.
 
-#### Subagente A — Backend map
+#### Subagente A — Backend map (ABAP / CAP)
 
-Objetivo: detectar qué existe ya en backend y cómo se organiza.
+Objetivo: detectar qué existe ya en backend y cómo se organiza, adaptado al stack ABAP y/o CAP del proyecto.
 
-Prompt sugerido:
+**Si el stack incluye ABAP:**
+
+Prompt sugerido para ABAP:
 
 ```
-Lee y resume SOLO lo relevante del backend para el CR [crId].
+Lee y resume SOLO lo relevante del backend ABAP para el CR [crId].
 
-1) Localiza modelos y migraciones relacionados con las entidades del CR.
-2) Localiza controllers/services/repos existentes (si hay CRUD ya hecho, endpoints, DTOs).
-3) Localiza configuración de seguridad actual (JWT, method-security, authorities) y patrones de @PreAuthorize (si existen).
-4) Devuelve una lista corta:
-   - Archivos existentes a reutilizar/modificar
+1) Busca objetos ABAP relacionados con las entidades del CR: tablas DDIC, Data Elements, CDS Views (DDLS), RAP Behavior Definitions/Implementations (BDEF/CLAS), servicios OData (SEGW o Service Binding RAP).
+2) Identifica clases ABAP (CLAS), módulos de función (FUGR) o BAPIs existentes que implementen lógica relacionada.
+3) Localiza el paquete ABAP activo del módulo (prefijo Z/Y, naming convention del proyecto).
+4) Detecta el patrón de exposición de servicio: OData V2 (SEGW) o OData V4 (RAP/Service Binding).
+5) Devuelve una lista corta:
+   - Objetos ABAP existentes a reutilizar/modificar (nombre exacto del objeto ABAP)
+   - Objetos ABAP ausentes a crear
+   - Convenciones reales (naming, paquete, namespace Z/Y)
+No inventes objetos: si no existen, dilo claramente.
+```
+
+**Si el stack incluye CAP:**
+
+Prompt sugerido para CAP:
+
+```
+Lee y resume SOLO lo relevante del backend CAP para el CR [crId].
+
+1) Localiza el schema CDS (db/*.cds) con entidades relacionadas a las afectadas por el CR.
+2) Localiza service definitions (srv/*.cds) y handlers (srv/*.js, srv/*.ts o srv/*.java) existentes.
+3) Revisa package.json o pom.xml (CAP Java) para entender el runtime CAP (Node o Java) y dependencias clave.
+4) Identifica configuración de autorización: anotaciones @requires / @restrict en .cds.
+5) Devuelve una lista corta:
+   - Archivos CDS/handler existentes a reutilizar/modificar (paths exactos)
    - Archivos ausentes a crear
-   - Convenciones reales de paths/packages
+   - Convenciones reales (namespace CDS, estructura db/srv, patrones de handler)
 No inventes artefactos: si no existen, dilo.
 ```
 
-#### Subagente B — Frontend map
+#### Subagente B — Frontend map (SAPUI5)
 
-Objetivo: detectar cómo está montada la app y cómo se integran módulos.
+Objetivo: detectar cómo está montada la app SAPUI5 y cómo se integran vistas/controladores/modelos.
 
 Prompt sugerido:
 
 ```
-Lee y resume SOLO lo relevante del frontend para el CR [crId].
+Lee y resume SOLO lo relevante del frontend SAPUI5 para el CR [crId].
 
-1) Identifica estructura de módulos en frontend/src/modules.
-2) Revisa router (rutas protegidas), layout, sidebar/nav.
-3) Revisa patrón de servicios (Mock/API, SERVICE_MODE o equivalente) y stores.
-4) Revisa cómo se modela auth (usuario/rol/permisos) y cómo se usa en AuthGuard.
-5) Devuelve:
-   - Archivos existentes a reutilizar/modificar
-   - Nuevos archivos a crear (por página/store/servicio)
-   - Convenciones reales (nombres, ubicaciones)
+1) Inspecciona webapp/manifest.json: rutas existentes (sap.ui5.routing.routes/targets), modelos OData/JSON declarados, app ID.
+2) Identifica la estructura de vistas y controladores: carpetas views/ y controller/ con nombres actuales.
+3) Revisa fragmentos (fragments/) y componentes reutilizables existentes relevantes al CR.
+4) Identifica los modelos de datos usados: OData V2 (sap.ui.model.odata.v2.ODataModel), OData V4 (sap.ui.model.odata.v4.ODataModel) o JSON models, y sus binding paths.
+5) Revisa i18n (i18n/i18n.properties) para entender convenciones de claves de texto.
+6) Devuelve:
+   - Archivos existentes a reutilizar/modificar (rutas exactas)
+   - Nuevas vistas/controladores/fragmentos a crear
+   - Convenciones reales (nombres de vista, binding paths, patrón de navegación)
+No inventes rutas ni modelos: si no existen, dilo.
 ```
 
 #### Subagente C — Tests map (opcional pero recomendado)
 
-Objetivo: detectar patrón real de tests (MockMvc/Testcontainers/Playwright) para que las tareas sean realistas.
+Objetivo: detectar patrón real de tests (AUnit ABAP / CAP test / OPA5 / wdi5) para que las tareas sean realistas.
 
 Prompt sugerido:
 
 ```
 Inspecciona el repo para entender el patrón de tests.
-- Backend: tests existentes (MockMvc, SpringBootTest, Testcontainers) y estructura de paquetes.
-- Frontend: Playwright specs existentes y convenciones.
-Devuelve recomendaciones concretas (paths y estilo).
+- Backend ABAP (si aplica): clases de test AUnit existentes (CL_ABAP_TESTDOUBLE, CL_OSQL_TEST_ENVIRONMENT), paquete y estructura de tests locales/globales.
+- Backend CAP (si aplica): tests existentes en test/ con @sap/cds/test o equivalente; convenciones de fixtures/mocking.
+- Frontend SAPUI5: tests de integración existentes (OPA5 en webapp/test/integration/, wdi5 si hay wdio.conf.js) y convenciones de journeys y pages.
+Devuelve recomendaciones concretas (paths, clases de test, estilo de assertions).
 ```
 
-**Regla de adaptación:** si el proyecto ya tiene un package/módulo existente que encaje, preferirlo.
+**Regla de adaptación:** si el proyecto ya tiene un objeto ABAP / módulo CDS / vista SAPUI5 que encaje, preferirlo.
 
 ### 2) Alignment (preguntas mínimas)
 
 Si Discovery revela ambigüedad o falta de datos, usar `vscode/askQuestions` para confirmar ANTES de redactar el backlog. Ejemplos típicos:
 
 - ¿Cuál es el `crId` exacto si el nombre del fichero/CR es ambiguo?
-- ¿Qué `moduleSlug` y nombre visible (Sidebar/menú) se espera?
+- ¿Qué stack backend aplica: `ABAP`, `CAP` o `ABAP+CAP`?
+- ¿Qué `moduleSlug` y nombre visible (Fiori Launchpad / menú SAP) se espera?
 - ¿El CR tiene IDs de análisis (RF/HU/CU/PF/Pantalla) o se usa solo `Ref: (CR-XXX)`?
-- ¿Qué endpoints/acciones exactas se esperan si el CR es vago?
-- ¿Qué roles/permisos gobiernan cada operación/pantalla?
+- ¿Qué servicios OData / entidades CDS / objetos ABAP exactos se esperan si el CR es vago?
+- ¿Qué roles/autoridades (`@requires`/`@restrict` en CAP, o autorización ABAP) gobiernan cada operación/pantalla?
 
 ### 3) Design (generar backlog)
 
 1. Copiar el esqueleto del template `backlog-template.detallado.md`.
 2. Reemplazar placeholders por nombres reales del proyecto y artefactos detectados en Discovery.
-3. Crear tareas atómicas:
-   - 1 tarea por archivo a crear/modificar.
-   - Para servicios/endpoints: 1 tarea por método/endpoint relevante.
-   - Para UI: 1 tarea por página + tareas por configuración (columnas/filtros/acciones/validaciones), usando templates compartidos cuando aplique.
-   - Para stores: 1 tarea por acción/selector.
+3. Crear tareas atómicas según el stack tecnológico detectado:
+
+   **Backend ABAP (si aplica):**
+   - 1 tarea por objeto ABAP a crear/modificar: tabla DDIC, Data Element, CDS View (interface/projection), Behavior Definition, Behavior Implementation, Service Definition, Service Binding, clase ABAP, módulo de función (FUGR).
+   - Para OData V2 (SEGW): 1 tarea por Entity Set, Association o Function Import relevante.
+   - Para RAP (OData V4): 1 tarea por capa (CDS Interface View, CDS Projection View, Behavior Definition, Behavior Implementation, Service Binding).
+   - Para lógica de negocio: 1 tarea por método/acción en clase ABAP o BAdI implementation.
+
+   **Backend CAP (si aplica):**
+   - 1 tarea por entidad CDS nueva/modificada en `db/*.cds`.
+   - 1 tarea por definición de servicio en `srv/*.cds`.
+   - 1 tarea por handler o método de handler en `srv/*.js|ts|java`.
+   - 1 tarea por anotación de autorización (`@restrict`, roles) si es nueva/cambia.
+
+   **Frontend SAPUI5:**
+   - 1 tarea por vista XMLView a crear/modificar (especificando binding path OData/JSON).
+   - 1 tarea por controlador + tareas por método de evento relevante (`onPress`, `onSearch`, `onSave`, etc.).
+   - 1 tarea por fragmento reutilizable (dialog, popover, etc.).
+   - 1 tarea por ruta nueva en `manifest.json` (routing + target).
+   - 1 tarea por modelo nuevo/modificado en `manifest.json` (OData o JSON model).
+   - 1 tarea por grupo de claves i18n nuevas.
+   - 1 tarea por configuración de columnas/filtros/acciones en Table/List/ObjectPage.
+
+   **Tests:**
+   - ABAP: 1 tarea por clase AUnit nueva o método de test crítico (CL_ABAP_TESTDOUBLE / CL_OSQL_TEST_ENVIRONMENT).
+   - CAP: 1 tarea por suite de test en `test/` (fixtures, mocks, assertions).
+   - UI5: 1 tarea por `PF-XXX` relevante (OPA5 journey o wdi5 spec).
+
 4. Adaptación a repo:
-   - Si un artefacto ya existe, NO crear tareas “Crear X”; en su lugar, “Extender/Ajustar” solo si el CR lo requiere.
-   - Referenciar archivos reales (paths exactos) en cada tarea.
+   - Si un artefacto ya existe, NO crear tareas "Crear X"; en su lugar, "Extender/Ajustar" solo si el CR lo requiere.
+   - Referenciar objetos reales (nombre ABAP exacto / paths CDS o SAPUI5 exactos) en cada tarea.
 
 ### 4) Refinement (quality gates)
 
@@ -167,7 +221,7 @@ Validación obligatoria antes de finalizar:
 - Todas las tareas tienen `Ref:`.
 - No hay secciones narrativas por tarea ni tablas de métodos.
 - No hay tareas macro (“Implementar módulo completo”).
-- No se inventan rutas/paquetes: si algo no se pudo verificar, marcarlo como “por confirmar” y volver a Alignment.
+- No se inventan nombres de objetos ABAP, paths CDS o vistas SAPUI5: si algo no se pudo verificar, marcarlo como "por confirmar" y volver a Alignment.
 
 Si el CR incluye IDs RF/HU/CU/PF/Pantalla y el repo contiene `analisis/` con esas referencias, opcionalmente ejecutar:
 
@@ -184,18 +238,19 @@ Crear:
 
 Y reportar al usuario al final:
 - Archivo generado
-- Resumen: Nº de tareas backend / frontend
-- Nota de adaptación: qué partes ya existían y se han reutilizado
+- Resumen: Nº de tareas por capa (ABAP / CAP / SAPUI5 / Tests)
+- Stack detectado: `ABAP | CAP | ABAP+CAP`
+- Nota de adaptación: qué objetos/artefactos ya existían y se han reutilizado
 
 ---
 
 ## Reglas de estilo (OBLIGATORIO)
 
 - El backlog debe parecer generado por `backlog-planner`.
-- Mantener orden de alto nivel del template: **Backend** primero, luego **Frontend**.
+- Mantener orden de alto nivel del template: **Backend** primero (ABAP y/o CAP), luego **Frontend (SAPUI5)**, luego **Tests**.
 - No incluir criterios de aceptación en el backlog (solo tareas).
 - No incluir bloques grandes de código.
-- No inventar rutas/paquetes: si no se han verificado con búsqueda/lectura, no se escriben como definitivos.
+- No inventar nombres de objetos ABAP / paths CDS / vistas SAPUI5: si no se han verificado con búsqueda/lectura, no se escriben como definitivos.
 
 ---
 
@@ -204,13 +259,13 @@ Y reportar al usuario al final:
 Usar esta mini-sección en la respuesta final del agente (no dentro del backlog) para dejar trazabilidad de decisiones y evitar “inventar” detalles.
 
 - Decisiones:
-   - (si aplica) Elegí `moduleSlug=...` porque ...
-   - (si aplica) Reutilizo `...` en lugar de crear `...` porque ...
+   - (si aplica) Elegí `backendStack=CAP` porque se detectó `db/` y `srv/` en el repo.
+   - (si aplica) Reutilizo el objeto ABAP `Z...` en lugar de crear uno nuevo porque ...
 - Supuestos:
-   - Asumo que `Ref:` se expresará como ...
-   - Asumo que la seguridad se basa en ...
+   - Asumo que `Ref:` se expresará como `Ref: (CR-XXX)`.
+   - Asumo que la autorización se basa en `@restrict` (CAP) / autorización ABAP (objeto/campo de autorización).
 - Pendiente de confirmación:
-   - Confirmar path/package real de ...
-   - Confirmar contrato API real de ...
+   - Confirmar nombre de paquete ABAP / namespace CDS real de ...
+   - Confirmar versión OData (V2/V4) y binding path real de ...
 - Impacto si cambia:
-   - Si `moduleSlug` cambia, afecta a rutas UI, paths frontend y nombres de tests.
+   - Si `moduleSlug` cambia, afecta a rutas SAPUI5 (manifest.json), binding paths y nombres de tests OPA5/wdi5.
