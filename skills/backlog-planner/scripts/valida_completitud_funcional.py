@@ -365,13 +365,13 @@ def build_report(module_slug: str, backlog_path: Path, findings: Sequence[Findin
         lines.append("")
         for f in missing:
             tok = tokenize(f.action.lower())
-            example_fn = f"run{tok[0].title()}" if tok else "runAction"
+            example_fn = f"on{tok[0].title()}" if tok else "onAction"
             lines.append(f"- {f.pantalla} :: {f.action}")
-            lines.append(f"  - UI: implementar accion/boton/flujo \"{f.action}\" en pantalla {f.pantalla} (manejo de loading/error + feedback).")
-            lines.append(f"  - Store: añadir accion dedicada (p.ej. `{example_fn}`) y estado de resultado.")
-            lines.append(f"  - Servicio (mock/backend): añadir metodo (mock con latencia + API con endpoint) o reutilizar endpoint existente si ya esta en design/03.")
-            lines.append(f"  - Backend (si aplica): exponer endpoint no-CRUD para la accion y validar permisos/errores.")
-            lines.append(f"  - Tests E2E: añadir caso que ejecute \"{f.action}\" y valide resultado visible.")
+            lines.append(f"  - UI5: implementar accion/boton/flujo \"{f.action}\" en XML View/controller de la pantalla {f.pantalla} (busy/error + feedback).")
+            lines.append(f"  - Estado UI: añadir handler dedicado (p.ej. `{example_fn}`) y actualizar `viewModel.js`/JSONModel con el resultado.")
+            lines.append("  - Servicio (mock/backend): añadir metodo en `*ServiceMock.js` y `*Service.js` o reutilizar la operacion OData/API existente si ya esta en design/03.")
+            lines.append("  - Backend (si aplica): exponer action/operacion CAP, RAP o ABAP equivalente para la accion y validar permisos/errores.")
+            lines.append(f"  - Tests E2E: añadir caso OPA5 alineado con `e2e-testing` que ejecute \"{f.action}\" y valide resultado visible.")
         lines.append("")
     return "\n".join(lines)
 

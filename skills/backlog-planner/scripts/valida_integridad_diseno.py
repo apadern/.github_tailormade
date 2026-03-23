@@ -6,13 +6,13 @@ Validador de integridad Backlog <-> Diseño (por módulo).
 
 Valida que un fichero de backlog del módulo contenga tareas que cubran:
 - Rutas UI del módulo (design/01_technical_design.md -> "Rutas UI (Frontend)")
-- Endpoints API del módulo (design/01_technical_design.md -> "Endpoints API (Backend)")
+- Servicios expuestos del módulo (design/01_technical_design.md -> tabla de endpoints/servicios API u OData del backend)
 - Entidades del módulo (design/02_data_model.md -> "Catálogo de Entidades")
 - Enums asociados a entidades del módulo (design/02_data_model.md -> "Detalle por Entidad")
 - Servicios del módulo (design/03_data_services.md -> "Catálogo de Servicios")
 
 Uso:
-  python .github/skills/backlog-planner/scripts/valida_integridad_diseno.py ^
+    python skills/backlog-planner/scripts/valida_integridad_diseno.py ^
     --backlog backlog/03_configuracion.md ^
     --module-scope configuracion
 """
@@ -30,9 +30,15 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 sys.dont_write_bytecode = True
 
-TASK_LINE_RE = re.compile(r"^\s*-\s*\[(?:x|X| )\]\s+")
+TASK_LINE_RE = re.compile(r"^\s*-\s*\[[xX ]\]\s+")
 HEADING_RE = re.compile(r"^(?P<level>#{1,6})\s+(?P<title>.+?)\s*$")
 SECTION_PREFIX_RE = re.compile(r"^\d+(?:\.\d+)*(?:[.)])?\s*")
+BACKTICK_TOKEN_RE = re.compile(r"`([^`]+)`")
+KIND_ROUTES_UI = "Rutas UI"
+KIND_ENDPOINTS_API = "Endpoints API"
+KIND_ENTITIES = "Entidades"
+KIND_ENUMS = "Enums"
+KIND_SERVICES = "Servicios"
 
 
 def read_text(path: Path) -> str:
@@ -56,6 +62,41 @@ def norm(s: str) -> str:
 
 def strip_section_prefix(s: str) -> str:
     return SECTION_PREFIX_RE.sub("", s).strip()
+
+
+def iter_backtick_basenames(task: str) -> Iterable[str]:
+    for token in BACKTICK_TOKEN_RE.findall(task):
+        token = token.strip()
+        if not token:
+            continue
+        yield token.replace("\\", "/").split("/")[-1]
+
+
+def matches_identifier_basename(basename: str, identifier: str, suffixes: Sequence[str]) -> bool:
+    basename_n = norm(basename)
+    identifier_n = norm(identifier)
+    targets = {identifier_n, *(norm(f"{identifier}{suffix}") for suffix in suffixes)}
+    return basename_n in targets or identifier_n in basename_n
+
+
+def first_matching_artifact_task(
+    tasks: Sequence[str],
+    identifier: str,
+    hint_re: re.Pattern[str],
+    suffixes: Sequence[str],
+) -> Optional[str]:
+    identifier_n = norm(identifier)
+    if not identifier_n:
+        return None
+    for task in tasks:
+        task_n = norm(task)
+        if identifier_n not in task_n:
+            continue
+        if any(matches_identifier_basename(basename, identifier, suffixes) for basename in iter_backtick_basenames(task)):
+            return task
+        if hint_re.search(task) and first_matching_identifier_task((task,), identifier):
+            return task
+    return first_matching_identifier_task(tasks, identifier)
 
 
 def extract_task_lines(backlog_md: str) -> List[str]:
@@ -125,11 +166,37 @@ def parse_table_after_heading(
     return headers, rows
 
 
+def parse_table_after_heading_options(
+    lines: Sequence[str],
+    heading_options: Sequence[str],
+    required_header_token_options: Sequence[Sequence[str]],
+) -> Tuple[List[str], List[List[str]]]:
+    errors: List[str] = []
+    for heading_text in heading_options:
+        for required_tokens in required_header_token_options:
+            try:
+                return parse_table_after_heading(lines, heading_text, required_tokens)
+            except ValueError as exc:
+                errors.append(str(exc))
+    headings = ", ".join(heading_options)
+    raise ValueError(f"No se encontró una tabla compatible tras ninguno de estos headings: {headings}. Detalle: {' | '.join(errors)}")
+
+
+def find_header_index(headers: Sequence[str], candidates: Sequence[str]) -> int:
+    headers_norm = [norm(h) for h in headers]
+    for candidate in candidates:
+        candidate_norm = norm(candidate)
+        for idx, header in enumerate(headers_norm):
+            if candidate_norm == header or candidate_norm in header:
+                return idx
+    raise ValueError(f"No se encontró ninguna columna compatible con {candidates} en headers {headers}")
+
+
 def extract_ui_routes(design01_md: str, module_scope: str) -> List[str]:
     lines = design01_md.splitlines()
     _, rows = parse_table_after_heading(
         lines,
-        heading_text="Rutas UI (Frontend)",
+        heading_text=KIND_ROUTES_UI + " (Frontend)",
         required_header_tokens=("Ruta", "Pantalla", "Modulo"),
     )
     out: List[str] = []
@@ -144,17 +211,29 @@ def extract_ui_routes(design01_md: str, module_scope: str) -> List[str]:
 
 def extract_api_endpoints(design01_md: str, module_scope: str) -> List[Tuple[str, str]]:
     lines = design01_md.splitlines()
-    _, rows = parse_table_after_heading(
+    headers, rows = parse_table_after_heading_options(
         lines,
-        heading_text="Endpoints API (Backend)",
-        required_header_tokens=("Metodo", "Endpoint", "Modulo"),
+        heading_options=(
+            "Endpoints API (Backend)",
+            "Servicios API/OData (Backend)",
+            "Servicios OData/API (Backend)",
+            "Servicios expuestos (Backend)",
+        ),
+        required_header_token_options=(
+            ("Metodo", "Endpoint", "Modulo"),
+            ("Metodo", "Servicio", "Modulo"),
+            ("Operacion", "Endpoint", "Modulo"),
+            ("Operacion", "Servicio", "Modulo"),
+        ),
     )
+    method_idx = find_header_index(headers, ("Metodo", "Metodo HTTP", "Operacion", "Action"))
+    endpoint_idx = find_header_index(headers, ("Endpoint", "Servicio", "Ruta", "Path"))
+    module_idx = find_header_index(headers, ("Modulo",))
     out: List[Tuple[str, str]] = []
     for r in rows:
-        # | Método | Endpoint | Recurso/Caso de Uso | Módulo | Seguridad |
-        method = strip_md_code(r[0])
-        endpoint = strip_md_code(r[1])
-        module = strip_md_code(r[3])
+        method = strip_md_code(r[method_idx])
+        endpoint = strip_md_code(r[endpoint_idx])
+        module = strip_md_code(r[module_idx])
         if not method or method.startswith("**"):
             continue
         if norm(module) == norm(module_scope):
@@ -185,7 +264,7 @@ ENUMS_ASSOC_LABEL_RE = re.compile(r"^\*\*Enums asociados:\*\*\s*$", re.MULTILINE
 
 def extract_entity_enums(design02_md: str, entities: Iterable[str]) -> Dict[str, List[str]]:
     lines = design02_md.splitlines()
-    entity_set = {e for e in entities}
+    entity_set = set(entities)
     out: Dict[str, List[str]] = {e: [] for e in entity_set}
 
     # Indexar heading "### {Entidad}"
@@ -284,57 +363,36 @@ def first_matching_identifier_task(tasks: Sequence[str], identifier: str) -> Opt
 
 
 def first_matching_entity_task(tasks: Sequence[str], entity: str) -> Optional[str]:
-    entity_n = norm(entity)
-    if not entity_n:
-        return None
-    create_entity_re = re.compile(r"crear\s+entity\b", re.IGNORECASE)
-    for t in tasks:
-        if not create_entity_re.search(t):
-            continue
-        # Usar el primer identificador en backticks como evidencia del artefacto creado.
-        for token in re.findall(r"`([^`]+)`", t):
-            token = token.strip()
-            if not token:
-                continue
-            basename = token.replace("\\", "/").split("/")[-1]
-            basename_n = norm(basename)
-            if basename_n == entity_n or basename_n == norm(f"{entity}.java"):
-                return t
-    return None
+    entity_hint_re = re.compile(
+        r"\b(entity|entidad|tabla|cds|projection|proyeccion|view|vista|behavior|bdef|ddic|rap)\b",
+        re.IGNORECASE,
+    )
+    return first_matching_artifact_task(tasks, entity, entity_hint_re, (".java", ".cds"))
 
 
 def first_matching_enum_task(tasks: Sequence[str], enum_name: str) -> Optional[str]:
     enum_n = norm(enum_name)
     if not enum_n:
         return None
-    enum_re = re.compile(r"\benum\b", re.IGNORECASE)
+    enum_re = re.compile(r"\b(enum|constante|constantes|dominio|catalogo|catalogo de valores|tipo)\b", re.IGNORECASE)
     for t in tasks:
-        if not enum_re.search(t):
+        if enum_n not in norm(t) or not enum_re.search(t):
             continue
-        for token in re.findall(r"`([^`]+)`", t):
-            if norm(token.strip()) == enum_n:
+        for token in iter_backtick_basenames(t):
+            token_n = norm(token)
+            if token_n == enum_n or enum_n in token_n:
                 return t
-    return None
+        if first_matching_identifier_task((t,), enum_name):
+            return t
+    return first_matching_identifier_task(tasks, enum_name)
 
 
 def first_matching_service_task(tasks: Sequence[str], service: str) -> Optional[str]:
-    service_n = norm(service)
-    if not service_n:
-        return None
-    create_service_re = re.compile(r"crear\s+service\b", re.IGNORECASE)
-    for t in tasks:
-        if not create_service_re.search(t):
-            continue
-        for token in re.findall(r"`([^`]+)`", t):
-            token = token.strip()
-            if not token:
-                continue
-            basename = token.replace("\\", "/").split("/")[-1]
-            basename_n = norm(basename)
-            if basename_n == service_n or basename_n == norm(f"{service}.java"):
-                return t
-    # Fallback: si no hay "Crear service", aceptar mención exacta (p.ej. tareas por método)
-    return first_matching_identifier_task(tasks, service)
+    service_hint_re = re.compile(
+        r"\b(service|servicio|handler|binding|action|accion|function|funcion|cds)\b",
+        re.IGNORECASE,
+    )
+    return first_matching_artifact_task(tasks, service, service_hint_re, (".java", ".cds", ".js", ".ts"))
 
 
 def first_matching_route_task(tasks: Sequence[str], route: str) -> Optional[str]:
@@ -347,8 +405,21 @@ def first_matching_route_task(tasks: Sequence[str], route: str) -> Optional[str]
             candidates.append(t)
     if not candidates:
         return None
-    # Evitar falsos positivos: base paths de controllers o API_BASE_URL.
-    strong_hints = ("agregar ruta", "routes.tsx", "sidebar.tsx", "sidebar", "página", "pagina")
+    # Evitar falsos positivos: base paths de services o menciones incidentales.
+    strong_hints = (
+        "agregar ruta",
+        "manifest.json",
+        "routing",
+        "target",
+        "sidebar",
+        "shell",
+        "navegacion",
+        "navegación",
+        "pagina",
+        "página",
+        "view.xml",
+        "controller.js",
+    )
     for hint in strong_hints:
         hint_n = norm(hint)
         for t in candidates:
@@ -413,11 +484,11 @@ def make_report(
     lines.append(f"- Diseño: `{design01_path.as_posix()}`, `{design02_path.as_posix()}`, `{design03_path.as_posix()}`")
     lines.append("")
     lines.append("## Resumen")
-    lines.append(section_summary("Rutas UI"))
-    lines.append(section_summary("Endpoints API"))
-    lines.append(section_summary("Entidades"))
-    lines.append(section_summary("Enums"))
-    lines.append(section_summary("Servicios"))
+    lines.append(section_summary(KIND_ROUTES_UI))
+    lines.append(section_summary(KIND_ENDPOINTS_API))
+    lines.append(section_summary(KIND_ENTITIES))
+    lines.append(section_summary(KIND_ENUMS))
+    lines.append(section_summary(KIND_SERVICES))
     lines.append("")
     lines.append(f"- Errores: {len(errors)}")
     lines.append(f"- Avisos: {len(warns)}")
@@ -443,7 +514,7 @@ def make_report(
     lines.append("")
     lines.append("## Nota")
     lines.append("- La búsqueda se limita a líneas de tareas con checkbox (`- [ ]` / `- [x]`).")
-    lines.append("- Para endpoints, se valida por path; si no aparece el método HTTP en la misma tarea, se emite aviso.")
+    lines.append("- Para servicios expuestos, se valida por path o endpoint; si no aparece la operación en la misma tarea, se emite aviso.")
     lines.append("")
     return "\n".join(lines)
 
@@ -490,22 +561,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     results: List[CheckResult] = []
 
     expected_counts: Dict[str, int] = {
-        "Rutas UI": len(ui_routes),
-        "Endpoints API": len(api_endpoints),
-        "Entidades": len(entities),
-        "Enums": len({e for enums in entity_enums.values() for e in enums}),
-        "Servicios": len(services),
+        KIND_ROUTES_UI: len(ui_routes),
+        KIND_ENDPOINTS_API: len(api_endpoints),
+        KIND_ENTITIES: len(entities),
+        KIND_ENUMS: len({e for enums in entity_enums.values() for e in enums}),
+        KIND_SERVICES: len(services),
     }
 
     for route in ui_routes:
         mt = first_matching_route_task(tasks, route)
-        results.append(CheckResult(kind="Rutas UI", expected=route, found=mt is not None, matched_task=mt))
+        results.append(CheckResult(kind=KIND_ROUTES_UI, expected=route, found=mt is not None, matched_task=mt))
 
     for method, path in api_endpoints:
         mt, note = first_matching_endpoint_task(tasks, method, path)
         results.append(
             CheckResult(
-                kind="Endpoints API",
+                kind=KIND_ENDPOINTS_API,
                 expected=f"{method} {path}",
                 found=mt is not None,
                 matched_task=mt,
@@ -515,16 +586,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     for entity in entities.keys():
         mt = first_matching_entity_task(tasks, entity)
-        results.append(CheckResult(kind="Entidades", expected=entity, found=mt is not None, matched_task=mt))
+        results.append(CheckResult(kind=KIND_ENTITIES, expected=entity, found=mt is not None, matched_task=mt))
 
     enum_set = sorted({e for enums in entity_enums.values() for e in enums}, key=norm)
     for enum_name in enum_set:
         mt = first_matching_enum_task(tasks, enum_name)
-        results.append(CheckResult(kind="Enums", expected=enum_name, found=mt is not None, matched_task=mt))
+        results.append(CheckResult(kind=KIND_ENUMS, expected=enum_name, found=mt is not None, matched_task=mt))
 
     for service in services:
         mt = first_matching_service_task(tasks, service)
-        results.append(CheckResult(kind="Servicios", expected=service, found=mt is not None, matched_task=mt))
+        results.append(CheckResult(kind=KIND_SERVICES, expected=service, found=mt is not None, matched_task=mt))
 
     report = make_report(
         module_scope=module_scope,

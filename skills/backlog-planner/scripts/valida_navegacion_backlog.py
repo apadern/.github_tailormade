@@ -7,7 +7,7 @@ Checks:
 - Ensures there is at least one task that adds a menu/sidebar link for the module (heuristic).
 - (Soft) Verifies that the module screens appear in analisis/11 navigation diagrams.
 
-This complements design-integrity: that script checks presence of expected routes/endpoints/entities/services,
+This complements design-integrity: that script checks presence of expected routes/servicios expuestos/entities/services,
 but does not ensure "menu link" tasks exist nor does it consider navigation diagrams explicitly.
 """
 

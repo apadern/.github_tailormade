@@ -40,68 +40,68 @@ Este archivo define el **formato y granularidad obligatoria** para los backlogs 
 
 ## Backend
 
-### BD y Migraciones (Flyway)
+### BD y Modelo Tecnico (CAP / ABAP)
 
-- [ ] Crear migración `backend/src/main/resources/db/migration/VXX__[moduleKey]_create_enums.sql` (para todos los enums del modulo). Ref: (RF-XXX)
-- [ ] Crear migración `backend/src/main/resources/db/migration/VXX__[moduleKey]_create_[tabla].sql` (tabla, PK, FKs, constraints, índices para consultas frecuentes, comentarios). Ref: (RF-XXX)
-- [ ] Crear migración `backend/src/main/resources/db/migration/VXX__[moduleKey]_seed_data.sql` con datos iniciales (si aplica). Ref: (RF-XXX)
+- [ ] Definir entidad persistente principal en `db/[moduleSlug]/schema.cds` o crear objeto DDIC `Z[moduleKey]_[tabla]` (campos, PK, FKs, constraints, indices y tipos). Ref: (RF-XXX)
+- [ ] Definir tipos reutilizables o enums en `db/[moduleSlug]/types.cds` o en dominio/elemento DDIC correspondiente. Ref: (RF-XXX)
+- [ ] Crear datos iniciales en `db/data/[moduleKey]-[Entidad].csv` o customizing/fixture ABAP con datos base requeridos por el modulo (si aplica). Ref: (RF-XXX)
 
 ---
 
-### API (Spring Boot)
+### API / Servicios (CAP / ABAP)
 
-#### EntidadX (JPA)
+#### EntidadX (Persistencia)
 
-- [ ] Crear entity `EntidadX.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/model/` con anotaciones JPA y validaciones. Ref: (RF-XXX)
-- [ ] Crear repository `EntidadXRepository.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/repository/` (métodos derivados / queries). Ref: (RF-XXX)
+- [ ] Definir entity/proyeccion `EntidadX` en `db/[moduleSlug]/schema.cds` o CDS `ZI_[EntidadX]` / tabla DDIC asociada. Ref: (RF-XXX)
+- [ ] Crear artefacto de acceso `srv/[moduleSlug]/[moduleSlug]-service.cds` o proyeccion CDS `ZC_[EntidadX]` para exposición y consumo de la entidad. Ref: (RF-XXX)
 
-#### DTOs
+#### Tipos y Contratos
 
-- [ ] Crear DTO `EntidadXRequest.java` (campos + @Valid) en `backend/src/main/java/com/nttdata/backend/[modulePackage]/dto/`. Ref: (RF-XXX)
-- [ ] Crear DTO `EntidadXResponse.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/dto/`. Ref: (RF-XXX)
+- [ ] Definir contrato/tipo `EntidadXPayload` en `db/[moduleSlug]/types.cds`, estructura ABAP o metadata tecnica reutilizable para la operacion. Ref: (RF-XXX)
+- [ ] Definir mapping de salida `EntidadXResult` en `srv/[moduleSlug]/[moduleSlug]-service.cds`, metadata extension o estructura ABAP equivalente. Ref: (RF-XXX)
 
 #### Service
 
-- [ ] Crear service `EntidadXService.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/service/` con método `getAll(...)`. Ref: (RF-XXX)
-- [ ] Implementar método `getById(id)` en EntidadXService. Ref: (RF-XXX)
-- [ ] Implementar método `create(request)` en EntidadXService (validaciones de negocio). Ref: (RF-XXX)
-- [ ] Implementar método `update(id, request)` en EntidadXService. Ref: (RF-XXX)
-- [ ] Implementar método `accionDeNegocio(...)` que ejecuta la regla [RB/operación]. Ref: (RF-XXX)
+- [ ] Crear service `EntidadXService` en `srv/[moduleSlug]/[moduleSlug]-service.cds` o service definition `ZUI_[EntidadX]_SRV` con operación `getAll(...)`. Ref: (RF-XXX)
+- [ ] Implementar handler/behavior `getById(id)` en `srv/[moduleSlug]/[moduleSlug]-service.js|ts` o clase/comportamiento ABAP equivalente. Ref: (RF-XXX)
+- [ ] Implementar operación `create(payload)` con validaciones de negocio en handler CAP o RAP/ABAP correspondiente. Ref: (RF-XXX)
+- [ ] Implementar operación `update(id, payload)` en handler CAP o RAP/ABAP correspondiente. Ref: (RF-XXX)
+- [ ] Implementar acción `accionDeNegocio(...)` que ejecuta la regla [RB/operación]. Ref: (RF-XXX)
 
-#### Controller (REST)
+#### Exposicion OData / API
 
-- [ ] Crear controller `EntidadXController.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/controller/` con base path `"/[moduleSlug]"` (sin prefijo `/api`, lo aporta `server.servlet.context-path`). Ref: (RF-XXX)
-- [ ] Implementar endpoint `GET /api/[moduleSlug]/entidades-x` (paginación/filtros si aplica). Ref: (RF-XXX)
-- [ ] Implementar endpoint `GET /api/[moduleSlug]/entidades-x/{id}` con 404 cuando no existe. Ref: (RF-XXX)
-- [ ] Implementar endpoint `POST /api/[moduleSlug]/entidades-x` con `@Valid` y respuesta estándar. Ref: (RF-XXX)
-- [ ] Implementar endpoint `PUT /api/[moduleSlug]/entidades-x/{id}`. Ref: (RF-XXX)
-- [ ] Implementar endpoint `POST /api/[moduleSlug]/entidades-x/{id}/accion` (si aplica). Ref: (RF-XXX)
+- [ ] Exponer entidad `EntidadX` en `srv/[moduleSlug]/[moduleSlug]-service.cds` o `ZUI_[EntidadX]_BIND` con path/servicio equivalente. Ref: (RF-XXX)
+- [ ] Implementar operación `GET /odata/v4/[moduleSlug]/EntidadesX` o consulta RAP equivalente (paginación/filtros si aplica). Ref: (RF-XXX)
+- [ ] Implementar operación `GET /odata/v4/[moduleSlug]/EntidadesX({id})` o lectura detalle equivalente con error cuando no existe. Ref: (RF-XXX)
+- [ ] Implementar operación `POST /odata/v4/[moduleSlug]/EntidadesX` o create equivalente con validación del payload. Ref: (RF-XXX)
+- [ ] Implementar operación `PATCH /odata/v4/[moduleSlug]/EntidadesX({id})` o update equivalente. Ref: (RF-XXX)
+- [ ] Implementar acción `POST /odata/v4/[moduleSlug]/EntidadXService.accionDeNegocio(...)` o action RAP/ABAP equivalente (si aplica). Ref: (RF-XXX)
 
 ---
 
 ### Seguridad / Config (si aplica)
 
-- [ ] Ajustar reglas de acceso del módulo en `backend/src/main/java/com/nttdata/backend/config/SecurityConfig.java` (roles/permisos). Ref: (RF-XXX)
-- [ ] Ajustar CORS del módulo en `backend/src/main/java/com/nttdata/backend/config/CorsConfig.java` si hay nuevas rutas. Ref: (RF-XXX)
-- [ ] Registrar controladores del módulo en `backend/src/main/java/com/nttdata/backend/audit/aspect/AuditAspect.java` (pointcut y mapeo de info de entidad) para habilitar auditoría automática. Ref: (RF-XXX)
+- [ ] Ajustar autorización del módulo en `srv/[moduleSlug]/authorization.cds`, DCL o artefacto ABAP equivalente (roles/permisos). Ref: (RF-XXX)
+- [ ] Ajustar configuración técnica del módulo (`.cdsrc.json`, `package.json`, destinos, customizing o binding ABAP`) si hay nuevas rutas o integraciones. Ref: (RF-XXX)
+- [ ] Habilitar auditoría con `managed`, handler CAP, behavior/determination o artefacto ABAP equivalente para registrar cambios relevantes. Ref: (RF-XXX)
 
 ---
 
 ### Integraciones / Jobs (si aplica)
 
-- [ ] Crear client `WorkdayClient.java` / `SapClient.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/integration/` (contrato + timeouts + errores). Ref: (RF-XXX)
-- [ ] Añadir **modo mock por configuración** para la integración (flag en `backend/src/main/resources/application-dev.yml` + env var) para desacoplar dev/E2E del sistema externo real. Ref: (RF-XXX)
-- [ ] Implementar comportamiento mock en `[Integracion]Client` cuando el flag esté activo (datos de ejemplo + errores simulables si aplica). Ref: (RF-XXX)
-- [ ] Crear job `Sync[Entidad]Job.java` en `backend/src/main/java/com/nttdata/backend/[modulePackage]/job/` (schedule/trigger, idempotencia). Ref: (RF-XXX)
-- [ ] Crear migración Flyway de **seed mínimo** para dev/E2E (roles/permisos/usuario admin/datos base requeridos por el módulo). Ref: (RF-XXX)
+- [ ] Crear integración `srv/[moduleSlug]/external/[Integracion].cds` / cliente CAP o clase/FM ABAP equivalente (contrato + timeouts + errores). Ref: (RF-XXX)
+- [ ] Añadir **modo mock por configuración** para la integración (flag, destination, profile o doble técnico) para desacoplar dev/E2E del sistema externo real. Ref: (RF-XXX)
+- [ ] Implementar comportamiento mock en `[Integracion]Service` o artefacto equivalente cuando el flag esté activo (datos de ejemplo + errores simulables si aplica). Ref: (RF-XXX)
+- [ ] Crear job/evento técnico `Sync[Entidad]` en CAP o job/clase ABAP equivalente (schedule/trigger, idempotencia). Ref: (RF-XXX)
+- [ ] Crear seed mínimo para dev/E2E (`db/data/*.csv`, fixtures o customizing ABAP`) con roles/permisos/usuario técnico/datos base requeridos por el módulo. Ref: (RF-XXX)
 
 ---
 
 ### Tests Backend
 
-- [ ] Test unitario de `EntidadXService` (validación de negocio / errores) en `backend/src/test/java/com/nttdata/backend/[modulePackage]/service/EntidadXServiceTest.java`. Ref: (RF-XXX)
-- [ ] Test de controller con MockMvc para `GET /api/[moduleSlug]/entidades-x` (ej: `get("/api/[moduleSlug]/entidades-x").contextPath("/api")`) en `backend/src/test/java/com/nttdata/backend/[modulePackage]/controller/EntidadXControllerTest.java`. Ref: (RF-XXX)
-- [ ] Test de integración con Testcontainers verificando persistencia de EntidadX (repo + migraciones) en `backend/src/test/java/com/nttdata/backend/[modulePackage]/integration/EntidadXIntegrationTest.java`. Ref: (RF-XXX)
+- [ ] Test de integración de `EntidadXService` con `@cap-js/cds-test` o prueba ABAP Unit/servicio equivalente para validación de negocio y errores. Ref: (RF-XXX)
+- [ ] Test de exposición OData/action para `GET /odata/v4/[moduleSlug]/EntidadesX` o servicio equivalente verificando filtros, detalle y errores. Ref: (RF-XXX)
+- [ ] Test de persistencia/autorización verificando `EntidadX` sobre CDS/CSV CAP o artefactos ABAP relacionados. Ref: (RF-XXX)
 
 ---
 
@@ -109,12 +109,12 @@ Este archivo define el **formato y granularidad obligatoria** para los backlogs 
 
 ### Tipos y Entidades
 
-- [ ] Definir interface `EntidadX` con campos: ... Ref: (RF-XXX)
-- [ ] Definir enum `EstadoEntidadX`: ... Ref: (RF-XXX)
-- [ ] Definir interface `SubEntidadY` con campos: ... Ref: (RF-XXX)
-- [ ] Definir enum `TipoZ`: ... Ref: (RF-XXX)
-- [ ] Definir tipos para filtros: EntidadXFilters, SubEntidadYFilters, ... Ref: (RF-XXX)
-- [ ] Exportar todos los tipos desde `frontend/src/modules/[moduleSlug]/types.ts`. Ref: (RF-XXX)
+- [ ] Definir shape de `EntidadX` en `webapp/modules/[moduleName]/model/models.js` con campos iniciales y normalización. Ref: (RF-XXX)
+- [ ] Definir constante `EstadoEntidadX` en `webapp/modules/[moduleName]/util/constants.js` o `model/models.js`. Ref: (RF-XXX)
+- [ ] Definir shape de `SubEntidadY` en `webapp/modules/[moduleName]/model/models.js`. Ref: (RF-XXX)
+- [ ] Definir constante `TipoZ` en `webapp/modules/[moduleName]/util/constants.js`. Ref: (RF-XXX)
+- [ ] Definir estructura de filtros en `webapp/modules/[moduleName]/model/viewModel.js` o `model/models.js`. Ref: (RF-XXX)
+- [ ] Exportar modelos y constantes del módulo desde `webapp/modules/[moduleName]/model/models.js`. Ref: (RF-XXX)
 
 ---
 
@@ -122,24 +122,24 @@ Este archivo define el **formato y granularidad obligatoria** para los backlogs 
 
 ### EntidadXService
 
-- [ ] Crear `EntidadXServiceMock.ts` con datos estáticos y latencia mock. Ref: (RF-XXX)
+- [ ] Crear `EntidadXServiceMock.js` con datos estáticos y latencia mock. Ref: (RF-XXX)
 - [ ] Implementar método `getAll(filters?)` en EntidadXServiceMock (retorna lista mock N registros). Ref: (RF-XXX)
 - [ ] Implementar método `getById(id)` en EntidadXServiceMock. Ref: (RF-XXX)
-- [ ] Implementar método `create(data)` en EntidadXServiceMock (si aplica). Ref: (RF-XXX)
-- [ ] Implementar método `update(id, data)` en EntidadXServiceMock (si aplica). Ref: (RF-XXX)
+- [ ] Implementar método `create(payload)` en EntidadXServiceMock (si aplica). Ref: (RF-XXX)
+- [ ] Implementar método `update(id, payload)` en EntidadXServiceMock (si aplica). Ref: (RF-XXX)
 - [ ] Implementar método `accionDeNegocio(...)` en EntidadXServiceMock (si aplica). Ref: (RF-XXX)
 
-- [ ] Crear `EntidadXService.ts` que consume API (usa `VITE_API_BASE_URL`) y respeta el contrato de `design/03`. Ref: (RF-XXX)
-- [ ] En `EntidadXService.ts`, **normalizar respuesta backend** cuando el API devuelva wrapper (p.ej. `ApiResponse{success,message,data}`): extraer `.data`, manejar `success=false` y mapear errores a mensajes consistentes. Ref: (RF-XXX)
-- [ ] Implementar método `getAll(filters?)` en EntidadXService (GET al endpoint correspondiente). Ref: (RF-XXX)
-- [ ] Implementar método `getById(id)` en EntidadXService (GET detalle). Ref: (RF-XXX)
-- [ ] Implementar método `create(data)` en EntidadXService (POST). Ref: (RF-XXX)
-- [ ] Implementar método `update(id, data)` en EntidadXService (PUT/PATCH). Ref: (RF-XXX)
-- [ ] Implementar método `accionDeNegocio(...)` en EntidadXService (POST acción). Ref: (RF-XXX)
+- [ ] Crear `EntidadXService.js` que consume OData/CAP/ABAP usando el modelo del `OwnerComponent` o el cliente definido por el proyecto. Ref: (RF-XXX)
+- [ ] En `EntidadXService.js`, **normalizar respuesta backend** cuando el servicio devuelva payload OData/action wrapper o estructura ABAP específica: extraer datos útiles y mapear errores a mensajes consistentes. Ref: (RF-XXX)
+- [ ] Implementar método `getAll(filters?)` en EntidadXService (lectura del servicio correspondiente). Ref: (RF-XXX)
+- [ ] Implementar método `getById(id)` en EntidadXService (lectura detalle). Ref: (RF-XXX)
+- [ ] Implementar método `create(payload)` en EntidadXService (create). Ref: (RF-XXX)
+- [ ] Implementar método `update(id, payload)` en EntidadXService (update). Ref: (RF-XXX)
+- [ ] Implementar método `accionDeNegocio(...)` en EntidadXService (action/function/operación equivalente). Ref: (RF-XXX)
 
-- [ ] (Si aplica) Definir `ApiResponse<T>` y/o helper `unwrapApiResponse<T>(payload)` en un módulo compartido (`frontend/src/shared/...`) para reutilizarlo en todos los services del módulo. Ref: (RF-XXX)
+- [ ] (Si aplica) Definir helper compartido de normalización/error en `webapp/modules/[moduleName]/util/helpers.js` o módulo común equivalente para reutilizarlo en todos los services del módulo. Ref: (RF-XXX)
 
-- [ ] En el store del módulo, seleccionar implementación (Mock/API) usando `SERVICE_MODE` (derivado de `VITE_USE_MOCK=true|false`). Ref: (RF-XXX)
+- [ ] En el controller o viewModel del módulo, seleccionar implementación (Mock/API) usando la configuración del proyecto. Ref: (RF-XXX)
 
 Nota: NO usar tablas de métodos ni agrupar todos los métodos en una sola tarea.
 
@@ -147,11 +147,11 @@ Nota: NO usar tablas de métodos ni agrupar todos los métodos en una sola tarea
 
 ## Store
 
-- [ ] Crear `entidadXStore.ts` con Zustand para estado (lista, actual, filtros, loading, error). Ref: (RF-XXX)
-- [ ] Implementar acción `fetchEntidadesX(filters?)` en entidadXStore. Ref: (RF-XXX)
-- [ ] Implementar acción `fetchEntidadXById(id)` en entidadXStore. Ref: (RF-XXX)
-- [ ] Implementar acción `accionDeNegocio(...)` en entidadXStore. Ref: (RF-XXX)
-- [ ] Implementar selector `getEntidadesXPendientes` (o equivalente). Ref: (RF-XXX)
+- [ ] Crear `viewModel.js` con `JSONModel` para estado (lista, actual, filtros, busy, error). Ref: (RF-XXX)
+- [ ] Implementar carga `fetchEntidadesX(filters?)` en controller/helper del módulo. Ref: (RF-XXX)
+- [ ] Implementar carga `fetchEntidadXById(id)` en controller/helper del módulo. Ref: (RF-XXX)
+- [ ] Implementar acción `accionDeNegocio(...)` actualizando `viewModel` y mensajes UI. Ref: (RF-XXX)
+- [ ] Implementar helper/formatter equivalente a `getEntidadesXPendientes` para consumo de la vista. Ref: (RF-XXX)
 
 ---
 
@@ -159,18 +159,19 @@ Nota: NO usar tablas de métodos ni agrupar todos los métodos en una sola tarea
 
 ### P-XXX: [Nombre Pantalla]
 
-- [ ] Crear página `[NombreEntidad]ListPage.tsx` en `frontend/src/modules/[moduleSlug]/pages/` usando `ListPageTemplate` de `shared/templates`. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Implementar componente `[NombreEntidad]FiltersBar.tsx` como `filterComponent` del `ListPageTemplate` con filtros: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Configurar columnas del `ListPageTemplate` (array `Column<[Entidad]>`): ... + acciones: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Configurar paginación del `ListPageTemplate` (page, pageSize, onPageChange desde `[entidad]Store`). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Implementar botón "[Acción Principal]" que navega a `/[moduleSlug]/[ruta-creacion]`. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Implementar acción "[Acción Fila]" con confirmación modal (si aplica). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Crear vista `[NombreEntidad].view.xml` en `webapp/modules/[moduleName]/view/` para la pantalla P-XXX. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Implementar controller `[NombreEntidad].controller.js` con filtros, eventos y carga inicial de datos. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Implementar fragment `fragments/[NombreEntidad]Filters.fragment.xml` o sección equivalente con filtros: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Configurar columnas de `sap.m.Table` o `sap.ui.table.Table` para `[Entidad]`: ... + acciones: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Configurar paginación, busy state y mensajes usando `viewModel.js` y controles UI5 correspondientes. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Implementar botón "[Acción Principal]" que navega a `#/[moduleSlug]/[ruta-creacion]` o ruta equivalente en `manifest.json`. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Implementar acción "[Acción Fila]" con `MessageBox`, diálogo o confirmación equivalente (si aplica). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
 - [ ] Implementar exportación a Excel/PDF (si aplica). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
 
 ### Rutas
 
-- [ ] Agregar ruta `/[moduleSlug]/[ruta]` para P-XXX [Nombre Pantalla]. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Agregar enlace del módulo en menú lateral (Sidebar) cuando aplique. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Agregar route y target en `webapp/manifest.json` para `#/[moduleSlug]/[ruta]` asociado a P-XXX [Nombre Pantalla]. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Agregar enlace del módulo en menú lateral, shell navigation o navegación equivalente cuando aplique. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
 
 ---
 
@@ -180,14 +181,14 @@ Incluir esta sección **únicamente** si existen componentes UI reutilizables en
 
 Reglas:
 
-- Si el componente será transversal, ubicarlo en `frontend/src/shared/components/`.
-- Si el componente es reutilizable dentro del módulo (pero no transversal), ubicarlo en `frontend/src/modules/[moduleSlug]/components/` y **NO** crear esta sección.
+- Si el componente será transversal, ubicarlo en una carpeta compartida del proyecto UI5 (`webapp/shared/`, `webapp/fragments/` o convención equivalente del repo).
+- Si el componente es reutilizable dentro del módulo (pero no transversal), ubicarlo dentro de `webapp/modules/[moduleName]/` y **NO** crear esta sección.
 
 Ejemplos de tareas:
 
-- [ ] Crear componente `DocumentoCard.tsx` para visualización con metadata (props: ...). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Crear componente `FiltrosX.tsx` (campos: ..., validaciones: ...). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Crear componente `TablaX.tsx` con columnas: ... + acciones: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Crear fragmento reutilizable `DocumentoCard.fragment.xml` para visualización con metadata y bindings. Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Crear fragmento/control `FiltrosX.fragment.xml` (campos: ..., validaciones: ...). Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Crear control o fragmento `TablaX` con columnas: ... + acciones: ... Ref: [Pantalla P-XXX] (HU-XXX) (CU-XXX) (RF-XXX)
 
 ---
 
@@ -195,7 +196,7 @@ Ejemplos de tareas:
 
 ### Tests por PF (Pruebas Funcionales)
 
-- [ ] Test E2E implementando PF-XXX para P-XXX validando [flujo concreto / criterio de aceptación]. Ref: [Pantalla P-XXX] (PF-XXX) (HU-XXX) (CU-XXX) (RF-XXX)
-- [ ] Test E2E implementando PF-XXX para P-XXX validando [validación/errores / caso alterno]. Ref: [Pantalla P-XXX] (PF-XXX) (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Journey OPA5 `webapp/test/integration/{Feature}Journey.js` implementando PF-XXX para P-XXX validando [flujo concreto / criterio de aceptación]. Ref: [Pantalla P-XXX] (PF-XXX) (HU-XXX) (CU-XXX) (RF-XXX)
+- [ ] Page Object o aserción OPA5 en `webapp/test/integration/pages/{ViewName}.js` implementando PF-XXX para P-XXX validando [validación/errores / caso alterno]. Ref: [Pantalla P-XXX] (PF-XXX) (HU-XXX) (CU-XXX) (RF-XXX)
 
 ```
