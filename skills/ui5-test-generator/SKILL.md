@@ -1,5 +1,5 @@
 ---
-name: e2e-testing
+name: ui5-test-generator
 description: Genera tests E2E con OPA5 (SAPUI5) por pantalla para validar carga de vista, interacción con controles, navegación y validación de estados.
 ---
 

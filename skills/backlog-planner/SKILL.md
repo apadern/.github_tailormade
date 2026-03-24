@@ -20,7 +20,7 @@ Al generar tareas de **pantallas frontend UI5**, considerar la separación técn
 - **Modelos UI5**: `webapp/modules/[moduleName]/model/models.js` y `viewModel.js` para shape de datos, catálogos y estado UI.
 - **Servicios UI5**: `webapp/modules/[moduleName]/services/[Entidad]Service.js` y `[Entidad]ServiceMock.js` para modo dual Mock/API.
 - **Controladores y utilidades**: `webapp/modules/[moduleName]/controller/*.controller.js`, `util/formatters.js`, `util/helpers.js`, `util/constants.js`.
-- **Testing E2E UI5**: `webapp/test/integration/*Journey.js`, `pages/*.js`, `AllJourneys.js` siguiendo la skill `e2e-testing`.
+- **Testing E2E UI5**: `webapp/test/integration/*Journey.js`, `pages/*.js`, `AllJourneys.js` siguiendo la skill `ui5-test-generator`.
 
 **Implicaciones para el backlog:**
 - Las tareas de pantallas deben referenciar explícitamente los artefactos UI5 usados (XML View, controller, fragment, `manifest.json`, Page Object/Journey si aplica).

@@ -388,7 +388,7 @@ Fases:
 4. Iteracion por pantalla:
    - UI (`ui-builder`),
    - rutas+sidebar (subagente dedicado),
-   - test E2E pantalla (`e2e-testing`),
+   - test E2E pantalla (`ui5-test-generator`),
    - ejecucion E2E API real,
    - ejecucion E2E mock,
    - avanzar solo cuando ambos modos quedan en verde.
@@ -438,8 +438,8 @@ Fases:
 - Convencion `data-testid` canonical:
   - `.github/skills/ui-builder/references/testids.md`.
 
-#### `e2e-testing`
-- Archivo: `.github/skills/e2e-testing/SKILL.md`
+#### `ui5-test-generator`
+- Archivo: `.github/skills/ui5-test-generator/SKILL.md`
 - Genera y ejecuta tests Playwright por criterio/pantalla.
 - Regla critica:
   - preflight de render antes de correr tests,
@@ -512,7 +512,7 @@ Restriccion principal:
 | Functional_Analyst | requirements-synthesizer, integrations-spec, user-stories-generator, ui-prototyper, mermaid-diagrams, functional-testing, traceability-validator, doc-assembler |
 | MVP_Design | technical-designer, data-modeler, services-designer, backlog-planner, traceability-validator |
 | Backend_DEV | backend-code-generator, backend-test-generator |
-| Frontend_DEV | frontend-code-generator, ui-builder, e2e-testing |
+| Frontend_DEV | frontend-code-generator, ui-builder, ui5-test-generator |
 | CR_Planner | backlog-planner (+ traceability-validator opcional) |
 
 ## 11. Artefactos clave generados en todo el pipeline

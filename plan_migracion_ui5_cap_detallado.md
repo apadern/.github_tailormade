@@ -73,7 +73,7 @@ La migración solo se considera válida si:
 5. `.github/skills/change-request-generator/SKILL.md`
 6. `.github/skills/data-modeler/SKILL.md`
 7. `.github/skills/doc-assembler/SKILL.md`
-8. `.github/skills/e2e-testing/SKILL.md`
+8. `.github/skills/ui5-test-generator/SKILL.md`
 9. `.github/skills/frontend-code-generator/SKILL.md`
 10. `.github/skills/functional-testing/SKILL.md`
 11. `.github/skills/image-analyzer/SKILL.md`
@@ -231,7 +231,7 @@ La migración solo se considera válida si:
 | `.github/skills/backlog-planner/SKILL.md` | REFACTOR | Reescribir reglas de tareas backend/frontend a CAP/UI5 manteniendo gates y granularidad. | Template backlog + scripts | Backlog UI5/CAP con misma profundidad. |
 | `.github/skills/frontend-code-generator/SKILL.md` | REPLACE | Sustituir por generador UI5 equivalente. | Services-designer | Generación frontend UI5 por módulo. |
 | `.github/skills/ui-builder/SKILL.md` | REPLACE | Sustituir por builder UI5 (views/controllers/fragments). | Testids UI5 | Construcción de pantalla UI5 estable. |
-| `.github/skills/e2e-testing/SKILL.md` | REPLACE | Sustituir por pruebas UI5 (OPA5/wdi5 o decisión ADR). | Testids UI5 | Test por PF por pantalla en UI5. |
+| `.github/skills/ui5-test-generator/SKILL.md` | REPLACE | Sustituir por pruebas UI5 (OPA5/wdi5 o decisión ADR). | Testids UI5 | Test por PF por pantalla en UI5. |
 | `.github/skills/backend-code-generator/SKILL.md` | REPLACE | Sustituir por generador CAP (db/srv/handlers). | Data/services designer | Generación backend CAP por módulo. |
 | `.github/skills/backend-test-generator/SKILL.md` | REPLACE | Sustituir por tests CAP por capas. | CAP code-gen | Suites de test CAP equivalentes. |
 | `.github/skills/ui-prototyper/SKILL.md` | KEEP | Sin cambio funcional. | Ninguna | Secciones 10-12 igual. |
@@ -302,7 +302,7 @@ Mantener temporalmente hasta validar 2 ejecuciones completas MVP+CR en UI5/CAP:
 - `.github/agents/Backend_DEV.agent.md`
 - `.github/skills/frontend-code-generator/SKILL.md`
 - `.github/skills/ui-builder/SKILL.md`
-- `.github/skills/e2e-testing/SKILL.md`
+- `.github/skills/ui5-test-generator/SKILL.md`
 - `.github/skills/backend-code-generator/SKILL.md`
 - `.github/skills/backend-test-generator/SKILL.md`
 - Referencias legacy React/Spring en `technical-designer/references/*` (hasta cutover).

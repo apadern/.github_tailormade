@@ -236,7 +236,7 @@ Nota de paralelización: `Paso 7.1` y `Paso 7.2` pueden ejecutarse en paralelo s
 
 ### Paso 7.3 Crear test E2E OPA5 para la pantalla (Subagente)
 
-Lanzar subagente usando skill: `e2e-testing`.
+Lanzar subagente usando skill: `ui5-test-generator`.
 
 - Crear `webapp/test/integration/{ModuleName}{ViewName}Journey.js`
 - Crear `webapp/test/integration/pages/{ModuleName}{ViewName}.js` (Page Object)

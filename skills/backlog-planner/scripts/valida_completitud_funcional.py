@@ -371,7 +371,7 @@ def build_report(module_slug: str, backlog_path: Path, findings: Sequence[Findin
             lines.append(f"  - Estado UI: añadir handler dedicado (p.ej. `{example_fn}`) y actualizar `viewModel.js`/JSONModel con el resultado.")
             lines.append("  - Servicio (mock/backend): añadir metodo en `*ServiceMock.js` y `*Service.js` o reutilizar la operacion OData/API existente si ya esta en design/03.")
             lines.append("  - Backend (si aplica): exponer action/operacion CAP, RAP o ABAP equivalente para la accion y validar permisos/errores.")
-            lines.append(f"  - Tests E2E: añadir caso OPA5 alineado con `e2e-testing` que ejecute \"{f.action}\" y valide resultado visible.")
+            lines.append(f"  - Tests E2E: añadir caso OPA5 alineado con `ui5-test-generator` que ejecute \"{f.action}\" y valide resultado visible.")
         lines.append("")
     return "\n".join(lines)
 
