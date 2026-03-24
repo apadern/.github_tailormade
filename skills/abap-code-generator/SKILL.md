@@ -165,7 +165,7 @@ SAPUI5 App (ODataModel V2 / V4)
 
 Cuando se crean varios objetos relacionados, activar en este orden para evitar dependencias rotas:
 
-1. Tipos de datos / Dominios / Estructuras DDIC
+1. Paquetes / Dominios / Elementos de datos / Estructuras DDIC
 2. Interfaces ABAP
 3. Clases abstractas / base
 4. Clases concretas / implementaciones

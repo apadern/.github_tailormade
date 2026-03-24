@@ -6,34 +6,6 @@ tools: ['vscode', 'read', 'agent', 'edit', 'search/changes', 'search/fileSearch'
 
 This document contains instructions and workflows for AI agents working with ABAP objects in VS Code using the ABAP FS Remote extension.
 
-## 🚨 FIRST PREMISE - ABAP TOOLS CHECK
-
-**BEFORE STARTING ANY TASK, YOU MUST VERIFY THAT ABAP TOOLS ARE AVAILABLE:**
-
-1. **Load ABAP tools** using `tool_search_tool_regex` with the pattern `abap_activate|abap_search`
-   - ABAP tools are **deferred tools** that must be loaded before they can be used
-   - The `tool_search_tool_regex` call will return the available ABAP tools and make them immediately usable
-   - Once loaded in a session, the tools remain available for subsequent calls
-
-2. **If the search returns ABAP tools**: Proceed with the ABAP development workflow immediately
-
-3. **If no tools are returned on first attempt**:
-   - ⚠️ **DO NOT give up immediately** - Try alternative search patterns:
-     - Pattern: `abap_` (matches all ABAP tools)
-     - Pattern: `activate` or `search` (individual tool names)
-   - Try searching **at least 2-3 times** with different patterns before concluding tools are unavailable
-   
-4. **Only if ALL search attempts fail**:
-   - ❌ **STOP EXECUTION**
-   - ⚠️ **Notify the user**: "ABAP tools are not available in this environment. These tools are required for the ABAP Developer agent. Please ensure the extension is installed and enabled."
-   - 🛑 **DO NOT proceed** with any ABAP-related tasks
-
-**CRITICAL REMINDERS:**
-- ABAP tools are deferred and MUST be loaded via `tool_search_tool_regex` before use
-- Once a tool appears in search results, it is immediately available to call
-- Be persistent - try multiple search patterns before declaring tools unavailable
-- This check is MANDATORY at the start of every ABAP work session
-
 This folder is a virtual filesystem used by the ABAP Filesystem extension to allow editing code stored on a server.
 CLI tools like grep,ls,find find and others can't operate on these files
 most standard search tool won't work either
@@ -41,21 +13,51 @@ You're still able to read and write files normally, and to navigate the filesyst
 
 **CRITICAL** always use tool abap_search to search ABAP code, never use standard tools that operate on the filesystem, like grep, fileSearch or lietDirectory in this folder.
 
-## CRITICAL Tool Rules
+## Input
 
-### ✅ ALWAYS USE These Tools for ABAP Development workflow:
-- **abap_createobject**: Create new ABAP objects (only when creating, not editing)
-- **abap_search**: Search for ABAP objects
-- **abap_lock**: Lock objects before editing (REQUIRED by SAP)
-- **read_file**: Read ABAP source code
-- **replace_string_in_file**: Modify ABAP source code
-- **abap_syntaxcheckcode**: Validate syntax before activation
-- **abap_activate**: Activate objects to make changes effective
-- **abap_unlock**: Unlock objects after editing (REQUIRED by SAP)
+The agent automatically loads the following files at the start of each task. **Do not include UI5 or CAP files** — only files relevant to ABAP backend development.
 
-### ❌ NEVER USE These Tools for ABAP Development workflow:
-- **abap_setsourcecode**: Deprecated, use replace_string_in_file instead
-- **abap_getsourcecode**: Deprecated, use read_file instead
+### Required
+- **Module backlog**: `backlog/XX_modulo.md` ← provided by the user when invoking the agent
+
+### Design (auto-load if they exist)
+- `design/01_technical_design.md` — overall architecture, **ABAP package hierarchy** (required for package setup), naming conventions
+- `design/02_abap_data_model.md` — ABAP/DDIC data model: tables, structures, data elements, domains
+- `design/03_odata_services.md` — OData V2/V4 service definitions (SEGW or RAP) to implement
+
+> **Package setup is mandatory**: before creating any Z object, read the target package from `design/01_technical_design.md` (column "Paquete ABAP") and verify/create it if needed. See the **PREREQUISITE: Package Setup** step in the workflow below.
+
+### Functional analysis (auto-load if they exist)
+- `analisis/03_requerimientos_funcionales.md` — functional requirements to cover
+- `analisis/04_requerimientos_tecnicos.md` — technical constraints, SAP version, authorizations
+- `analisis/05_historias_usuario.md` — acceptance criteria per user story
+- `analisis/06_casos_uso.md` — business flows to implement in ABAP
+- `analisis/08_integraciones.md` — integrations with external systems (BAPIs, RFCs, APIs)
+- `analisis/13_pruebas_funcionales.md` — test cases to validate the implementation
+
+> **Ignore**: `design/02_cap_data_model.md`, `design/02_ui5_data_model.md`, `analisis/10_interfaces_usuario.md`, `analisis/11_diagramas_navegacion.md`, `analisis/12_prototipos_interfaz.md` and any file related to UI5 or CAP.
+
+## Available Tools:
+
+### ✅ ALWAYS USE These Tools:
+- **abap_createobject**: Create new ABAP objects (classes, programs, function groups, etc.)
+- **abap_search**: Search for ABAP objects (classes, programs, tables, etc.)
+- **read_file**: Read file contents from VS Code file system
+- **replace_string_in_file**: Edit ABAP source code by replacing text in files
+- **abap_syntaxcheckcode**: Validate ABAP code for syntax errors
+- **abap_activate**: Activate objects after changes (makes changes effective). Automatically handles related objects: if activation fails due to dependencies, it finds and activates all related inactive objects (siblings with same parent) together. For includes, uses the main program for activation.
+- **abap_openobject**: Open ABAP objects in VS Code editor (for interactive editing)
+- **abap_unit**: Run ABAP unit tests
+- **abap_transportinfo**: Get transport information for recording changes
+- **abap_getsapuser**: Get SAP user information from connection configuration (username, client, language)
+- **abap_gettable**: Retrieve contents of database tables or CDS views
+- **abap_getstructure**: Get complete structure and metadata of ABAP objects
+- **abap_gettypeinfo**: Get DDIC type information (tables, structures, data elements)
+- **abap_usagereferences**: Find where symbols, methods, or objects are used/referenced
+
+### ⚠️ DEPRECATED - DO NOT USE These Tools:
+- **abap_getsourcecode**: ❌ DEPRECATED - Use read_file instead
+- **abap_setsourcecode**: ❌ DEPRECATED - Use replace_string_in_file instead
 
 ## Available Skills
 
@@ -66,6 +68,7 @@ When working with specific ABAP object types, specialized skills are available t
 - **abap_data_element_creator**: Use this skill when creating ABAP Data Elements (DTEL/DE). This skill provides the step-by-step process for creating and configuring data elements with proper XML structure.
 - **abap_bapi**: Use this skill when you need to find and implement BAPI (Business Application Programming Interface) calls. This skill provides access to BAPI templates and best practices for calling standard SAP function modules.
 - **abap_atc_corrector**: Use this skill when fixing ABAP ATC (Test Cockpit) findings. This skill provides systematic instructions to automatically correct ATC issues based on priority levels, following ABAP best practices and file-system based workflow.
+- **abap_domain_creator**: Use this skill when creating ABAP Domains (DOMA/DD). This skill provides the step-by-step process for creating and configuring domains with proper XML structure, including data types, lengths, and fixed values.
 - **abap_restful**: Use this skill when creating RESTful ABAP applications using RAP (RESTful Application Programming Model). This skill provides comprehensive guidance for creating all necessary RAP artifacts including database tables, CDS views, behavior definitions, behavior implementations, service definitions, and service bindings for OData V2/V4 services.
 
 Invoke skills by using the @skill syntax or by consulting the `.github/skills/` directory when you need specialized guidance for a specific task.
@@ -88,8 +91,14 @@ Use this unified workflow for both creating new objects and editing existing one
 ### Quick Reference
 
 ```
+PREREQUISITE — Package Setup (ALWAYS before creating any Z object):
+0. Read target package  → design/01_technical_design.md (column "Paquete ABAP")
+1. Search package       → abap_search (objtype=DEVC/K, check if package exists)
+2. Create if missing    → abap_createobject (objtype=DEVC/K, parentName from analisis/04)
+   ↳ ONE package per module — all Z objects go inside it
+
 For NEW objects:
-1. Create Object    → abap_createobject (create the object)
+1. Create Object    → abap_createobject (create the object, parentName = target package)
 2. Search Object    → abap_search (find it and get URIs)
 3. Read Source      → read_file (read initial content)
 4. Lock Object      → abap_lock (REQUIRED: lock before editing)
@@ -112,10 +121,42 @@ For EXISTING objects:
 
 ### Detailed Step-by-Step Instructions
 
+#### PREREQUISITE: Package Setup (MANDATORY before any Z object creation)
+
+```
+When:    At the START of every module implementation, before creating any ABAP object.
+Purpose: Ensure the required Z package exists in the SAP system for the module.
+
+Step P1 — Identify the target package:
+  - Read design/01_technical_design.md, column "Paquete ABAP" in the module table.
+  - The package name is Z<APP>_<MOD> (e.g. ZTAILORM_AUTH, ZTAILORM_FACT).
+  - If no design document exists, derive from module name: Z<PREFIX>_<MOD>.
+
+Step P2 — Check if the package exists:
+  Tool: abap_search
+  Input: objtype=DEVC/K, name=<package_name>
+  Result: If found → package exists, proceed to Step 0.
+          If not found → proceed to Step P3.
+
+Step P3 — Create the package if missing:
+  Tool: abap_createobject
+  Input:
+    objtype:     DEVC/K
+    name:        <PACKAGE_NAME>   (e.g. ZTAILORM_AUTH)
+    description: <Module description from backlog>
+    parentName:  <parent_package from analisis/04_requerimientos_tecnicos.md>
+
+IMPORTANT:
+  - ONE package per module. All Z objects of the module go inside this single package.
+  - NEVER use $TMP as parent package for production Z objects.
+  - Record the creation in the active transport request (abap_transportinfo).
+```
+
 #### Step 0: Create Object (ONLY for new objects)
 ```
 Tool: abap_createobject
-When: Only when creating a NEW object, skip this step for existing objects
+When: Only when creating a NEW object, skip this step for existing objects.
+      Package must already exist (see PREREQUISITE above).
 Purpose: Create a new ABAP object in the SAP system
 Input: objtype, name, description, parentName (package), url
 Output: Object created confirmation with URI path
@@ -163,8 +204,6 @@ Purpose: Apply the required changes to the source code
 Process: Modify the code read in Step 3 using file editing tools
 Approach: Make precise, targeted modifications directly in the file
 CRITICAL: DO NOT use abap_setsourcecode in this workflow - use replace_string_in_file
-Tools: replace_string_in_file, multi_replace_string_in_file
-```
 Tools: replace_string_in_file, multi_replace_string_in_file
 ```
 
@@ -247,28 +286,6 @@ For read-only operations:
 - **Object Not Found**: Retry search or verify object name and type are correct
 - **Read Errors**: Ensure the ADT URI is correct and object is accessible
 - **Permission Errors**: Verify you have authorization to modify the object or package
-
-## Available Tools:
-
-### ALWAYS USE These Tools:
-- **abap_createobject**: Create new ABAP objects (classes, programs, function groups, etc.)
-- **abap_search**: Search for ABAP objects (classes, programs, tables, etc.)
-- **read_file**: Read file contents from VS Code file system
-- **replace_string_in_file**: Edit ABAP source code by replacing text in files
-- **abap_syntaxcheckcode**: Validate ABAP code for syntax errors
-- **abap_activate**: Activate objects after changes (makes changes effective). Automatically handles related objects: if activation fails due to dependencies, it finds and activates all related inactive objects (siblings with same parent) together. For includes, uses the main program for activation.
-- **abap_openobject**: Open ABAP objects in VS Code editor (for interactive editing)
-- **abap_unit**: Run ABAP unit tests
-- **abap_transportinfo**: Get transport information for recording changes
-- **abap_getsapuser**: Get SAP user information from connection configuration (username, client, language)
-- **abap_gettable**: Retrieve contents of database tables or CDS views
-- **abap_getstructure**: Get complete structure and metadata of ABAP objects
-- **abap_gettypeinfo**: Get DDIC type information (tables, structures, data elements)
-- **abap_usagereferences**: Find where symbols, methods, or objects are used/referenced
-
-### ⚠️ DEPRECATED - DO NOT USE These Tools:
-- **abap_getsourcecode**: ❌ DEPRECATED - Use read_file instead
-- **abap_setsourcecode**: ❌ DEPRECATED - Use replace_string_in_file instead
 
 ## ABAP Best Practices
 

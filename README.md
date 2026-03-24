@@ -1,9 +1,18 @@
 # Template MVP v1.4
 
 ## PASO 0: PREREQUISITOS
+
+### Extensiones VS Code requeridas
+
+| Extensión | Propósito |
+|-----------|-----------|
+| [ABAP Filesystem (nttdata.vscode-abap-remote-fs)](https://teams.microsoft.com/l/channel/19%3A0af0a09744024ac4af98f66a340b8479%40thread.tacv2/tab%3A%3A53490592-62dd-4ace-a274-adddb196c45d?context=%7B%22channelId%22%3A%2219%3A0af0a09744024ac4af98f66a340b8479%40thread.tacv2%22%7D&tenantId=3048dc87-43f0-4100-9acb-ae1971c79395) | **Requerida para desarrollo ABAP.** Permite editar, activar y gestionar objetos ABAP directamente desde VS Code contra un sistema SAP. Necesaria para el agente `ABAP_DEV`. |
+
+### MCP Servers requeridos
+
 Configurar los siguientes MCP Server en VS Code:
 
-```
+```json
 {
 	"inputs": [],
 	"servers": {
@@ -18,10 +27,29 @@ Configurar los siguientes MCP Server en VS Code:
 		"image-extractor": {
 			"command": "npx",
 			"args": ["mcp-image-extractor@latest"]
+		},
+		"mcp-abap": {
+			"command": "npx",
+			"args": ["-y", "mcp-abap@latest"],
+			"type": "stdio"
+		},
+		"mcp-sap-docs": {
+			"command": "npx",
+			"args": ["-y", "mcp-sap-docs@latest"],
+			"type": "stdio"
 		}
 	}
 }
 ```
+
+| MCP Server | Propósito |
+|-----------|-----------|
+| `chrome-devtools` | Inspección DOM y captura visual para agentes de UI |
+| `image-extractor` | Extracción de texto e imágenes de documentos |
+| `mcp-abap` | Documentación y búsqueda de objetos ABAP/SAP. Requerido para el agente `ABAP_DEV` |
+| `mcp-sap-docs` | Acceso a documentación oficial SAP (S/4HANA, ABAP, BTP). Requerido para el agente `ABAP_DEV` |
+
+
 ## PASO 1: EXTRAER LOS REQUISITOS DE LA DOCUMENTACIÓN
 Ejecutar el agente `Requirements_Extractor` para extraer los requisitos de la documentación. Ejemplo de prompt:
 

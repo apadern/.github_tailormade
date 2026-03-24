@@ -4,7 +4,7 @@ Esta referencia define la **plantilla de estructura** y convenciones mínimas pa
 
 ## Árbol de Paquetes (Backend ABAP)
 
-En ABAP todos los objetos viven en un **único paquete** `Z<MODULO>` en el repositorio SAP (SE80 / ADT). La separación de capas se expresa únicamente mediante las convenciones de nombres de los objetos. El paquete puede ser que ya exista en el sistema o que se cree específicamente para el proyecto, pero en cualquier caso debe seguir esta estructura interna:
+En ABAP los objetos se organizan en una **jerarquía de paquetes Z** en el repositorio SAP. Hay un paquete raíz por aplicación y sub-paquetes por módulo y capa. Esta estructura debe declararse explícitamente en `design/01_technical_design.md` (sección "ABAP Package Hierarchy") para que el agente `ABAP_DEV` la implemente.
 
 ```
 Z<MODULO>/                               # Paquete único del módulo

@@ -204,9 +204,10 @@ Tabla consolidada de dominios propuestos y sus valores fijos (si aplica):
 6. **Agregar dependencias entre paquetes/capas** al final:
    - Append sección 5 con tabla de dependencias y orden de implementación
 
-7. **Agregar resumen de dominios y enums** al final:
-   - Append sección 6 con tabla de dominios (Dominio, Tipo base, Valores fijos)
-   - Incluir únicamente dominios referenciados en las entidades
+7. **Agregar resumen de dominios, elementos de datos y enums** al final:
+   - Append sección 6 con tabla de dominios (Dominio, Elementos de datos, Tipo base, Valores fijos)
+   - Incluir únicamente elementos de datos referenciados en las entidades
+   - Crear siempre dominios para los elementos de datos nuevos
    - Evitar duplicados: mismo dominio debe aparecer una sola vez
 
 ### Patrón de Append
