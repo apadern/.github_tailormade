@@ -31,7 +31,7 @@ El skill debe verificar el modo y ajustar secciones/prerrequisitos.
 
 ### Inicialización
 
-1. Crear carpeta `analisis/`
+1. Crear carpeta `analisis/` dentro de la carpeta del proyecto `docs/`
 2. Leer `requisitos.md` e `imagenes.md`
 3. Contar totales (RFs, RBs, DCs, INTs, imágenes) y crear `analisis/debug.md`
 4. Determinar modo: completo (por defecto) o prototipo

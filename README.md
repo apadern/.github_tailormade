@@ -59,12 +59,16 @@ Extraer requisitos de "03 - Situaciones administrativas 6.0 (Corregido).pdf" y "
 
 * NOTA: Para extraer el texto de las imágenes con OCR se requiere instalar Tesseract https://github.com/UB-Mannheim/tesseract/wiki y actualizar la ruta en el fichero `.github\agents\Requirements_Extractor.agent.md`
 
+Añadir como contexto en el prompt el material funcional del que se disponga, creando una carpeta `/docs/material` dentro de la raíz del proyecto.
+
 ## PASO 2: GENERAR EL ANÁLISIS FUNCIONAL 
 Ejecutar el agente `Functional_Analyst` para generar el análisis funcional del MVP (carpeta `analisis/`). Ejemplo de prompt:
 
 ```
 Generar análisis funcional para un sistema que cubra toda la funcionalidad del CRM Comercial.
 ```
+
+Añadir como contexto en el prompt la carpeta `docs/`.
 
 ## PASO 3: GENERAR DISEÑO TÉCNICO Y PLANIFICACIÓN
 Ejecutar el agente `MVP_Design.agent` para generar el diseño técnico (`design/01_technical_design.md`), modelo de datos (`design/02_data_model.md`), servicios (`design/03_data_services.md`) y backlog (`backlog/XX_[Nombre_Modulo].md`). Ejemplo de prompt:

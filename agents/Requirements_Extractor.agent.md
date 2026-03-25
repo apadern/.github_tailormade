@@ -18,31 +18,27 @@ Orquesta la extracción de requisitos de documentos técnicos.
 
 ### Fase 1: Extracción de Texto (Subagente)
 
-```
 Ejecutar skill text-extractor con los documentos proporcionados.
-Salida: requisitos.md, carpeta images/
-```
+Salida: `docs/requisitos.md`, carpeta `docs/images/`
 
 ### Fase 2: Análisis de Imágenes (Subagentes Paralelos)
 
-```
-Si existe carpeta images/:
+Si existe carpeta `docs/images/`:
   1. Listar todas las imágenes
   2. Dividir imágenes en bloques de 5
   3. Lanzar un subagente por cada bloque de 5 imágenes
-     - Bloque 1 (imgs 1-5): Crear imagenes.md
-     - Bloques 2-N (imgs 6+): Append a imagenes.md
+     - Bloque 1 (imgs 1-5): Crear `docs/imagenes.md`
+     - Bloques 2-N (imgs 6+): Append a `docs/imagenes.md`
   4. Los subagentes se ejecutan en paralelo
-Salida: imagenes.md consolidado
-```
+Salida: `docs/imagenes.md` consolidado
 
 ## Ejecución
 
 1. Recibir documentos del usuario
 2. Lanzar subagente para Fase 1 con skill text-extractor
 3. Si hay imágenes:
-   - Listar imágenes en carpeta images/
+   - Listar imágenes en carpeta `docs/images/`
    - Dividir en bloques de 5
    - Lanzar subagentes en paralelo (máximo recomendado: 4 simultáneos)
-   - Primer bloque crea imagenes.md, resto hace append
+   - Primer bloque crea `docs/imagenes.md`, resto hace append
 4. Reportar resultados al usuario
