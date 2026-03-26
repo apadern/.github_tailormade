@@ -7,13 +7,40 @@ tools: [execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput,
 
 Genera diseño técnico, modelo de datos, servicios y backlog usando skills y subagentes.
 
-## Regla de oro (OBLIGATORIO)
+## Regla de oro (OBLIGATORIO) 
 
 Cada paso del flujo **se ejecuta mediante un subagente** usando la herramienta `agent`.
 
 - Este agente actúa como **orquestador**.
 - Los subagentes hacen el trabajo (diseño técnico, modelo de datos, servicios y backlog).
 - El orquestador solo decide el siguiente paso y valida el resultado.
+
+## PRINCIPIO FUNDAMENTAL: Standard-First SAP
+
+**ANTES de crear CUALQUIER objeto Z (tabla, CDS View, clase, función), los subagentes DEBEN ejecutar búsqueda en DOS FASES:**
+
+**FASE 1 (PRIMERO): Buscar en documentación SAP** usando herramientas MCP:
+   - `mcp_mcp-sap-docs_search` - buscar documentación general
+   - `mcp_mcp-sap-docs_sap_search_objects` - buscar objetos específicos por tipo
+   - `mcp_mcp-sap-docs_sap_get_object_details` - obtener detalles completos
+   - `mcp_mcp-abap_search` - buscar en SAP Community
+
+**FASE 2 (DESPUÉS): Verificar en sistema SAP conectado** usando herramientas `nttdata.vscode-abap-remote-fs/abap_*`:
+   - `abap_search` - buscar objetos encontrados en FASE 1 en el sistema
+   - `abap_gettable` - verificar estructura completa de tablas
+   - `abap_getstructure` - obtener estructuras DDIC
+   - `abap_getsourcecode` - revisar código fuente
+   - `abap_gettypeinfo` - verificar tipos de datos
+
+**ORDEN OBLIGATORIO:** MCP (docs) → abap_* (verificación sistema) → Decisión
+
+**FASE 3 (OBLIGATORIA): Documentar resultados** en cada documento de diseño generado:
+   - Objetos estándar encontrados y reutilizados
+   - Objetos Z propuestos con justificación explícita y evidencia de búsqueda
+
+**NO se permite avanzar de fase sin evidencia documentada de uso de estas herramientas.**
+
+Ver sección "Guardrails del repo" y "Fase 2.5: Validación Standard-First" para detalles completos.
 
 ## Prerrequisitos
 
@@ -37,15 +64,56 @@ Requiere análisis funcional previo en carpeta `analisis/`:
 
 Aplicar estas reglas durante TODAS las fases (diseño, servicios y backlog) para evitar errores repetidos:
 
-- **Standard-first (OBLIGATORIO)**: antes de proponer cualquier objeto Z (tabla, CDS View, clase, función, servicio OData), el subagente **debe usar las herramientas de documentación SAP** (`mcp_mcp-sap-docs_search`, `mcp_mcp-sap-docs_sap_search_objects`, `mcp_mcp-sap-docs_sap_get_object_details`, `mcp_mcp-abap_search`) para identificar si existe una API estándar o solución estándar SAP que cubra el requisito. El flujo obligatorio es:
-  1. Buscar API/objeto estándar SAP mediante las herramientas MCP de documentación.
-  2. Si existe solución estándar: documentarla en el diseño (`design/01`, `design/02_abap_data_model.md`) como objeto reutilizado, **no crear objetos Z equivalentes**.
-  3. Si no existe solución estándar o es insuficiente: justificarlo explícitamente en el documento de diseño antes de proponer objetos Z.
-  - Aplica a: BAPIs, CDS Views estándar, servicios OData estándar (Business Hub / API Marketplace), clases estándar, módulos de función estándar, tablas de customizing estándar.
+- **Standard-first (OBLIGATORIO Y BLOQUEANTE)**: antes de proponer cualquier objeto Z (tabla, CDS View, clase, función, servicio OData), el subagente **DEBE OBLIGATORIAMENTE ejecutar búsqueda en DOS FASES**:
+  
+  **FASE 1 (OBLIGATORIA - PRIMERO): Búsqueda en Documentación SAP (MCP)**
+  
+  SIEMPRE comenzar con herramientas MCP para obtener documentación oficial:
+  - `mcp_mcp-sap-docs_search` - Buscar documentación general de objetos estándar
+  - `mcp_mcp-sap-docs_sap_search_objects` - Buscar objetos específicos por tipo (TABLE, CDS_VIEW, ODATA_SERVICE, BAPI(en caso de que no exista API y sea necesario para la propuesta ))
+  - `mcp_mcp-sap-docs_sap_get_object_details` - Obtener detalles completos de objetos encontrados
+  - `mcp_mcp-abap_search` - Buscar en SAP Community y documentación ABAP
+  
+  **Resultado FASE 1:** Lista de objetos estándar candidatos (tablas, CDS, APIs OData, BAPIs) con documentación oficial.
+  
+  **FASE 2 (OBLIGATORIA - DESPUÉS DE FASE 1): Verificación en Sistema SAP Conectado**
+  
+  SOLO DESPUÉS de obtener documentación en FASE 1, verificar en el sistema SAP real conectado:
+  - `nttdata.vscode-abap-remote-fs/abap_search` - Buscar objetos encontrados en FASE 1 en el sistema específico
+  - `nttdata.vscode-abap-remote-fs/abap_gettable` - Verificar estructura completa de tabla estándar encontrada en FASE 1
+  - `nttdata.vscode-abap-remote-fs/abap_getstructure` - Obtener estructura de objetos DDIC encontrados
+  - `nttdata.vscode-abap-remote-fs/abap_getsourcecode` - Revisar código fuente de objetos (CDS, clases, funciones)
+  - `nttdata.vscode-abap-remote-fs/abap_gettypeinfo` - Obtener información de tipos de datos
+  
+  **Resultado FASE 2:** Confirmación de existencia en sistema + estructura completa con campos + extensiones disponibles.
+  
+  **ORDEN OBLIGATORIO:** MCP (documentación) → abap_* (verificación) → Decisión (usar estándar o crear Z)
+  
+  **FASE 3: Documentación de resultados (OBLIGATORIO)**  
+  1. Si existe solución estándar: documentarla en el diseño (`design/01`, `design/02_abap_data_model.md`) en una sección específica `## Objetos Estándar Reutilizados` con:
+     - Nombre del objeto estándar
+     - Tipo (tabla, CDS View, clase, función, servicio OData)
+     - Descripción y funcionalidad que cubre
+     - Evidencia de verificación (qué herramienta abap_* se usó y qué devolvió)
+     - **NO crear objetos Z equivalentes**
+  2. Si NO existe solución estándar suficiente: documentarlo en sección `## Objetos Z Justificados` con:
+     - Nombre del objeto Z propuesto
+     - Búsqueda realizada (qué herramientas abap_* se usaron, qué términos/objetos se buscaron)
+     - Resultados de la búsqueda (qué se encontró y por qué no es suficiente)
+     - Justificación explícita de por qué se necesita crear objeto Z
+  
+  **FASE 4: Validación de uso de herramientas (BLOQUEANTE)**
+  - El documento `design/02_abap_data_model.md` DEBE incluir ambas secciones:
+    - `## Objetos Estándar Reutilizados` (puede estar vacía si no se encontraron objetos reutilizables, PERO DEBE EXISTIR)
+    - `## Objetos Z Justificados` (debe tener una entrada por cada objeto Z propuesto con evidencia de búsqueda usando herramientas abap_*)
+  - **NO se permite continuar a Fase 3 si estas secciones no existen o están incompletas**
+  - **REGLA DE ORO**: Por cada tabla Z propuesta en el modelo de datos, DEBE existir evidencia documentada de que se usaron las herramientas `abap_search` y `abap_gettable` para verificar que no existe tabla estándar equivalente
+  
+  - Aplica a: BAPIs, CDS Views estándar, servicios OData estándar (Business Hub / API Marketplace), clases estándar, módulos de función estándar, tablas de customizing estándar, tablas maestras y transaccionales.
 
 - **Nomenclatura ABAP/CDS**: respetar convención `Z<MOD>_<TIPO>_<NOMBRE>` en todos los objetos DDIC, CDS Views (`_R_`, `_C_`), Service Definitions (`_SV_`) y Service Bindings (`_UI_`, `_API_`). No mezclar convenios de distintos módulos.
 - **OData EntitySets**: documentar siempre el EntitySet name, las NavigationProperties y los `$expand` necesarios. En V2 (SEGW) documentar FunctionImports; en V4/RAP documentar Actions y Functions. No proponer operaciones CRUD sin verificar el nivel de draft/autorización RAP.
-- **Tablas DDIC**: nunca proponer "modificar campos existentes en tablas con datos"; siempre crear una nueva tabla custom Z o ampliar mediante append/include. Delivery class debe declararse explícitamente (`A`, `C`, `L`, `E`).
+- **Tablas DDIC**: nunca proponer "modificar campos existentes en tablas con datos"; siempre crear una nueva tabla custom Z o ampliar mediante append/include. Delivery class debe declararse explícitamente (`A`, `C`, `L`, `E`). Si existe CDS que sustituye a tabla estándar, usar CDS estandard.
 - **RAP vs SEGW**: decidir en Fase 1 si el servicio OData usa RAP (V4) o SEGW (V2). No mezclar ambos patrones para el mismo objeto de negocio dentro de un mismo módulo.
 - **CAP (CDS/Node.js o Java)**: si el proyecto usa SAP CAP, documentar las entidades en `schema.cds`, los servicios en `service.cds` y las anotaciones Fiori en ficheros `.cds` de anotaciones. No duplicar definición de entidades entre CDS CAP y DDIC ABAP.
 - **SAPUI5 / Fiori**: las rutas UI se definen en `manifest.json` (sección `routes` y `targets`). Documentar siempre `routeName`, `pattern` y `target` en el diseño. No usar rutas relativas sin `#/` en hash-based routing.
@@ -78,11 +146,231 @@ Depende de: Fase 1 (design/01 debe existir)
 
 **Nota:** abap-data-modeler genera tablas DDIC, CDS Views (Root `_R_` y Projection `_C_`), Service Definitions y Service Bindings. Usa `design/01` para alinear paquetes y módulos SAP con las entidades. CAP-data-modeler genera entidades en `schema.cds` con anotaciones de servicio. UI5-data-modeler genera modelos JSON para mockups y prototipos UI5, alineados con las entidades definidas por ABAP/CAP.
 
-> **Standard-first en modelado**: el `ABAP_Data_Modeler_Agent` debe usar las herramientas MCP SAP (`mcp_mcp-sap-docs_search`, `mcp_mcp-sap-docs_sap_search_objects`) para verificar si existen CDS Views estándar, tablas estándar o servicios OData del catálogo SAP API Business Hub que cubran cada entidad antes de definir una tabla Z. Los objetos estándar identificados se documentan en `design/02_abap_data_model.md` en una sección `## Objetos Estándar Reutilizados` indicando nombre, tipo y motivo de reutilización. Solo se define un objeto Z cuando no existe equivalente estándar suficiente, con justificación explícita.
+**OBLIGATORIO - Standard-first en modelado de datos ABAP**: 
+ 
+ El `ABAP_Data_Modeler_Agent` **DEBE EJECUTAR OBLIGATORIAMENTE** el siguiente flujo para CADA entidad/tabla propuesta:
+ 
+**1. Búsqueda previa OBLIGATORIA (antes de proponer tabla Z)**
+ - Para cada entidad del modelo conceptual, el subagente DEBE:
+   a) Usar `nttdata.vscode-abap-remote-fs/abap_search` para buscar tablas/objetos relacionados en el sistema SAP conectado
+   b) Usar `nttdata.vscode-abap-remote-fs/abap_gettable` para verificar estructura de tablas estándar encontradas
+   c) Usar `mcp_mcp-sap-docs_sap_search_objects` para buscar en documentación SAP
+   d) Usar `mcp_mcp-sap-docs_sap_get_object_details` para obtener detalles de objetos encontrados
+ 
+ **2. Documentación OBLIGATORIA en design/02_abap_data_model.md**
+ 
+El documento **DEBE** incluir estas secciones (BLOQUEANTE si faltan):
+ 
+ ```markdown
+
+ ## Objetos Estándar Reutilizados
+ 
+ Objetos SAP estándar identificados y verificados en el sistema que cubren funcionalidades del MVP.
+ 
+ | Objeto | Tipo | Funcionalidad | Herramienta Usada | Resultado Verificación |
+ |--------|------|---------------|-------------------|------------------------|
+ | MARA | Tabla | Datos maestros de material | abap_gettable | Estructura válida con campos MATNR, MATKL, MEINS |
+ | I_Product | CDS View | Vista consumo productos | abap_search | CDS View existente con asociaciones a I_ProductText |
+ 
+ ## Objetos Z Justificados
+ 
+ Objetos custom propuestos tras verificar que no existe solución estándar suficiente.
+ 
+ | Objeto Z | Búsqueda Realizada | Herramientas Usadas | Resultado | Justificación |
+ |----------|-------------------|---------------------|-----------|---------------|
+ | ZTLM_PEDIDO | Búsqueda: "pedido", "order", "VBAK" | abap_search, abap_gettable, sap_search_objects | VBAK encontrada pero no cubre campos custom necesarios (campo_especial_cliente) | Campos específicos del negocio no cubiertos por tabla estándar. VBAK se usará como referencia pero se requiere tabla Z para extensiones custom |
+ ```
+ 
+ **3. Validación BLOQUEANTE**
+ 
+ - Si `design/02_abap_data_model.md` NO contiene ambas secciones → **DETENER y solicitar corrección**
+ - Si alguna tabla Z propuesta NO tiene entrada en "Objetos Z Justificados" con evidencia de búsqueda → **DETENER y solicitar evidencia**
+ - Si en "Objetos Z Justificados" NO se documentan las herramientas abap_* usadas → **DETENER y solicitar evidencia de uso de herramientas**
+
+### Fase 2.5: Validación de Standard-First (OBLIGATORIO Y BLOQUEANTE)
+
+**Depende de**: Fase 2 completa (todos los archivos design/02_* generados)
+
+**NO se permite continuar a Fase 3 sin completar esta validación exitosamente**
+
+Lanzar subagente: `Standard_First_Validator_Agent`. Instrucción para subagente:
+
+
+OBJETIVO: Verificar que el ABAP_Data_Modeler_Agent usó las herramientas abap_* y MCP para buscar objetos estándar antes de proponer objetos Z.
+
+Paso 1. Leer design/02_abap_data_model.md
+
+Paso 2. Verificar existencia de secciones OBLIGATORIAS:
+   - "## Objetos Estándar Reutilizados" (debe existir, puede estar vacía)
+   - "## Objetos Z Justificados" (debe existir si hay objetos Z propuestos)
+
+Paso 3. Para CADA tabla Z o CDS View Z propuesta en el documento:
+   a) Verificar que existe entrada en tabla "Objetos Z Justificados"
+   b) Verificar que se documentó qué herramientas se usaron (abap_search, abap_gettable, etc.)
+   c) Verificar que se documentó qué se buscó (términos de búsqueda)
+   d) Verificar que se documentó qué se encontró
+   e) Verificar que existe justificación explícita de por qué el objeto estándar no es suficiente
+   f) **[CRÍTICO]** Verificar que la justificación NO es una de estas PROHIBIDAS:
+      - ❌ "Esto es pre-ERP" o "esto es antes de contabilizar en SAP"
+      - ❌ "Es un portal custom" o "es un sistema externo"
+      - ❌ "No hay API estándar para esto"
+      - ❌ "La tabla estándar es de otro módulo" (MM vs FI, etc.)
+      - ❌ "Campos específicos del cliente/negocio" (sin mostrar que no existe append structure)
+      - ❌ Cualquier justificación sin evidencia concreta de búsqueda
+
+Paso 3.1. Para justificaciones relacionadas con "pre-ERP" o "antes de contabilizar":
+   - Verificar que se buscó: APIs estandard para la funcionalidad (parked documents for example)
+   - Verificar que se buscó: "draft", "staging", "workflow"
+   - Verificar que se consultó estructura de tabla estándar con abap_gettable
+   - Si NO se hicieron estas búsquedas → MARCAR COMO ERROR CRÍTICO
+
+Paso 3.2. Para justificaciones relacionadas con "campos custom":
+   - Verificar que se evaluó: append structure (CI_*)
+   - Verificar que se buscó: enhancement spots, BADIs
+   - Verificar que se muestra la estructura de tabla estándar (abap_gettable)
+   - Si propone tabla Z completa en lugar de tabla extensión → MARCAR COMO WARNING
+
+Paso 3.3. Para justificaciones relacionadas con "no hay API":
+   - **Paso A — API OData (obligatorio primero):**
+     - Verificar que se buscó: `ODATA_SERVICE` en MCP docs y `A_<Entidad>*` en sistema
+     - Verificar que se consultó SAP API Business Hub (`mcp_sap_search`)
+     - Verificar que se buscó: `I_*` (CDS Views exponentíbles vía RAP)
+     - Si EXISTE API OData que cubre el requisito → MARCAR COMO ERROR CRÍTICO (se debió usar la API)
+   - **Paso B — BAPI (solo si no existe API OData):**
+     - Verificar que se buscó: `BAPI_*` solo después de descartar API OData
+     - Si se encontró BAPI: verificar que se propuso wrapper OData, NO tabla Z equivalente:
+         - Solo lectura (GET): Function Import SEGW / `@ODataFunction` RAP
+         - Con escritura (POST/PUT/DELETE): Behavior Definition con llamada interna al BAPI
+     - Si se propone tabla Z en lugar de wrapper BAPI → MARCAR COMO WARNING
+   - Si NO se distinguió entre API OData y BAPI en las búsquedas → MARCAR COMO ERROR CRÍTICO
+
+Paso 4. Generar reporte: design/check_standard_first.md
+
+   Formato:
+   ```markdown
+   # Validación Standard-First - Modelo de Datos ABAP
+   
+## Resumen
+   - Objetos Z propuestos: X
+   - Objetos Z con búsqueda documentada: Y
+   - Objetos estándar reutilizados: Z
+   - Estado: OK / FAIL
+   
+   ## Errores Críticos (BLOQUEANTES)
+   
+   | Objeto Z | Error | Detalle | Acción Requerida |
+   |----------|-------|---------|------------------|
+   | ZTLM_FAC_T_INVOICE | Justificación prohibida: "pre-ERP" | No se verificó RBKP parked, staging, workflow | Ejecutar: abap_search('BAPI_INCOMINGINVOICE_PARK'), abap_search('draft invoice'), abap_gettable('RBKP') |
+   | ZTLM_FAC_T_VALIDATION | No existe entrada en "Objetos Z Justificados" | Tabla propuesta sin justificación | Documentar búsqueda: JEST, BAPIRET2, application log |
+   | ZTLM_FAC_T_PAYMENT | Justificación prohibida: "es de otro módulo" | No se verificó BSEG, PAYR (FI) | Ejecutar: abap_gettable('BSEG'), abap_search('I_JournalEntryItem*') |
+   | ZTLM_PEDIDO | No se documentan herramientas usadas | Sin evidencia de búsqueda | Especificar herramientas abap_* usadas |
+   
+   ## Warnings
+   
+   | Objeto | Tipo | Observación | Recomendación |
+   |--------|------|-------------|---------------|
+   | RBKP | Estándar | Tabla estándar disponible pero no documentada | Añadir a "Objetos Estándar Reutilizados" |
+   | ZTLM_PO_FULL | Custom | Se propone tabla Z completa, no tabla extensión | Evaluar: append structure CI_EKKO o tabla extensión ZTLM_PO_EXT con solo campos custom |
+   
+   ## Errores de Justificación Detectados (Patrón)
+   
+   ### Patrón: "Esto es pre-ERP"
+   
+   Objetos afectados: ZTLM_FAC_T_INVOICE, ZTLM_STAGING_*
+   
+   Justificación usada por el agente:
+   > "Las facturas del portal son pre-ERP, el proveedor las sube antes de que existan en SAP, por eso necesito ZTLM_FAC_T_INVOICE."
+   
+   Por qué es incorrecta:
+   - SAP tiene RBKP con estados (parked, draft, posted)
+   - SAP tiene BAPI_INCOMINGINVOICE_PARK para documentos preliminares
+   - SAP tiene workflow estándar (SWWWIHEAD) para procesos de aprobación
+   - SAP tiene staging/draft en RAP automáticamente
+   
+   Búsquedas que debieron hacerse:
+   - abap_search: "BAPI_INCOMINGINVOICE_PARK"
+   - abap_search: "parked invoice", "draft"
+   - abap_gettable: "RBKP" (ver campo RBSTAT - status)
+   - abap_search: "SWWWIHEAD", "workflow"
+   
+   ### Patrón: "No hay API OData"
+   
+   Objetos afectados: ZTLM_API_WRAPPER_*
+   
+   Justificación usada por el agente:
+   > "No hay servicio OData para crear facturas de proveedor, necesito tabla Z."
+   
+   Por qué es incorrecta:
+   - SAP tiene API_SUPPLIERINVOICE_PROCESS_SRV (OData V2)
+   - SAP tiene I_SupplierInvoice (CDS View) que puede exponerse vía RAP
+   - Si no hay API y hay BAPI, lo correcto es crear un wrapper OData:
+       - Solo lectura: Function Import SEGW / @ODataFunction RAP
+       - Con escritura (POST): Behavior Definition con llamada interna al BAPI
+   - SAP API Business Hub documenta APIs disponibles
+   
+   Búsquedas que debieron hacerse (en orden):
+   - Búsqueda A — API OData (primero):
+     - abap_search: "A_SupplierInvoice*", "API_SUPPLIERINVOICE*"
+     - mcp_sap_search: "supplier invoice API Business Hub"
+     - abap_search: "I_SupplierInvoice*"
+   - Búsqueda B — BAPI (solo si no existe API OData):
+     - abap_search: "BAPI_INCOMINGINVOICE*"
+     - abap_getsourcecode: "BAPI_INCOMINGINVOICE_CREATE" (ver si soporta operaciones de escritura)
+   ```
+
+Paso 5. Si Estado = FAIL:
+   - DETENER flujo INMEDIATAMENTE
+   - NO continuar a Fase 3
+   - NO aceptar justificaciones adicionales sin nueva búsqueda
+   
+   Acciones de corrección OBLIGATORIAS por tipo de error:
+   
+   **Si error es "Justificación prohibida: pre-ERP":**
+   1. Solicitar a ABAP_Data_Modeler_Agent que ejecute:
+      - abap_search("BAPI_*_PARK", "draft", "staging", "workflow")
+      - abap_gettable("RBKP") y verificar campos de estado (RBSTAT, etc.)
+      - abap_search("SWWWIHEAD") para workflow
+   2. Actualizar sección "Objetos Z Justificados" con resultados REALES de búsqueda
+   3. Si RBKP cubre la funcionalidad → ELIMINAR tabla Z y usar RBKP
+   4. Si RBKP no cubre → JUSTIFICAR con evidencia concreta de abap_gettable
+   
+   **Si error es "No se documentan herramientas usadas":**
+   1. Solicitar a ABAP_Data_Modeler_Agent que:
+      - Ejecute las búsquedas mínimas (ver sección búsquedas obligatorias del skill)
+      - Documente CADA herramienta usada en columna "Herramientas Usadas"
+      - Documente QUÉ devolvió cada herramienta en columna "Resultados"
+   2. Actualizar tabla "Objetos Z Justificados" con evidencia completa
+   
+   **Si error es "No existe entrada en Objetos Z Justificados":**
+   1. Solicitar a ABAP_Data_Modeler_Agent que:
+      - Identifique TODAS las tablas Z propuestas en el documento
+      - Para cada una ejecute búsquedas obligatorias
+      - Añada entrada en tabla "Objetos Z Justificados"
+   2. Si tras búsqueda se encuentra objeto estándar → ELIMINAR tabla Z propuesta
+   
+   **Si error es "Justificación prohibida: es de otro módulo":**
+   1. EXPLICAR al agente: La integración cross-módulo es NORMAL en SAP
+   2. Actualizar diseño para usar tabla estándar del otro módulo
+   3. Documentar en "Objetos Estándar Reutilizados" con nota de integración
+   4. ELIMINAR tabla Z propuesta
+   
+   **Después de correcciones:**
+   - Re-ejecutar Fase 2 (ABAP_Data_Modeler_Agent con nuevas búsquedas)
+   - Re-ejecutar Fase 2.5 (validación)
+   - SOLO continuar si estado = OK
+
+Paso 6. Si Estado = OK:
+   - Verificar que NO hay errores críticos
+   - Verificar que TODAS las tablas Z tienen justificación con evidencia
+   - Verificar que NO hay justificaciones prohibidas no detectadas
+   - DEVOLVER: "Validación Standard-First OK. design/check_standard_first.md generado. X objetos estándar reutilizados, Y objetos Z justificados con evidencia. Listo para continuar a Fase 3."
+
 
 ### Fase 3: Servicios
 
-Depende de: Fase 2 (design/02_abap_data_model.md debe existir)
+**Depende de**: Fase 2.5 exitosa (design/check_standard_first.md en estado OK)
+
+**BLOQUEADO hasta que Fase 2.5 esté completada**
 
 | Subagente | Skill | Entrada | Salida |
 |-----------|-------|---------|--------|
@@ -92,7 +380,7 @@ Depende de: Fase 2 (design/02_abap_data_model.md debe existir)
 
 ### Fase 4: Validación de Diseño
 
-Depende de: Fases 1, 2 y 3 (todos los docs de design deben existir).
+**Depende de**: Fases 1, 2, 2.5 y 3 (todos los docs de design deben existir + validación standard-first OK).
 
 Lanzar subagente `Validator_Agent`. Instrucción para subagente:
 

@@ -296,9 +296,11 @@ Requiere analisis funcional completo en `analisis/` (archivos 01 a 14).
 - Reutilizado para validar cobertura por modulo y consolidada.
 - Criterio de salida del agente: `check_final.md` con 0 errores.
 
-## 7. Agente 4 - Backend_DEV
+## 7. Agente 4 - ABAP_DEV, CAP_DEV o UI5_DEV (segun tecnologia)
 
-Archivo: `.github/agents/Backend_DEV.agent.md`
+Archivo: `.github/agents/ABAP_DEV.agent.md`
+Archivo: `.github/agents/CAP_DEV.agent.md`
+Archivo: `.github/agents/UI5_DEV.agent.md`
 
 ### 7.1 Objetivo
 
@@ -510,7 +512,7 @@ Restriccion principal:
 |---|---|
 | Requirements_Extractor | text-extractor, image-analyzer |
 | Functional_Analyst | requirements-synthesizer, integrations-spec, user-stories-generator, ui-prototyper, mermaid-diagrams, functional-testing, traceability-validator, doc-assembler |
-| MVP_Design | technical-designer, data-modeler, services-designer, backlog-planner, traceability-validator |
+| MVP_Design | technical-designer, abap-data-modeler, cap-data-modeler, ui5-data-modeler, services-designer, backlog-planner, traceability-validator |
 | Backend_DEV | backend-code-generator, backend-test-generator |
 | Frontend_DEV | frontend-code-generator, ui-builder, ui5-test-generator |
 | CR_Planner | backlog-planner (+ traceability-validator opcional) |
