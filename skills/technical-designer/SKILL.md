@@ -154,6 +154,7 @@ Además, incluir el catálogo de entidades y acciones OData del servicio CAP (al
 - NO incluir configuración de herramientas (xs-app.json, mta.yaml, package.json, .cdsrc)
 - NO detallar entidades CDS ni tablas ABAP (eso es del skill data-modeler)
 - NO detallar propiedades OData ni contratos de acción (eso es del skill services-designer)
+- NO detallar bindings ODataModel V4, estructura de JSONModels, ResourceModel, mock data ni asignación de modelos por vista (eso es del skill ui5-data-modeler)
 - NO inventar módulos no presentes en RFs/diagramas; si se requiere un módulo transversal (p.ej. auth/xsuaa), justificarlo como "transversal" y mantenerlo mínimo.
 
 ## Proceso
