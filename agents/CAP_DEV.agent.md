@@ -21,8 +21,10 @@ Cada paso del flujo **se ejecuta mediante un subagente** usando la herramienta `
 ## Entrada
 
 - Backlog del modulo: `backlog/XX_modulo.md`
-- (Opcional) `design/02_data_model.md`
-- (Opcional) `design/03_data_services.md`
+- (Opcional) `design/02_cap_data_model.md`
+- (Opcional) `design/03_cap_services.md`
+
+Cuando existan, `design/02_cap_data_model.md` y `design/03_cap_services.md` son la fuente canonica para implementar CAP. No volver a la cadena generica `02_data_model` / `03_data_services`.
 
 ## Salida
 
@@ -128,7 +130,7 @@ Este paso se puede acelerar lanzando subagentes en paralelo respetando dependenc
 #### Fase 1.1 - Modelos CDS (Subagente)
 
 Lanzar subagente usando skill: `cap-code-generator` (modo: `models`).
-- Entradas: backlog (BD y modelo), `design/02_data_model.md` (si existe)
+- Entradas: backlog (BD y modelo), `design/02_cap_data_model.md` (si existe)
 - Salida: `db/[modulo]/schema.cds`, `db/[modulo]/types.cds` (opcional)
 
 Guardrails:
@@ -139,7 +141,7 @@ Guardrails:
 #### Fase 1.2 - Servicios CDS (Subagente)
 
 Lanzar subagente usando skill: `cap-code-generator` (modo: `services`).
-- Entradas: backlog (API - Service), `design/03_data_services.md` (si existe)
+- Entradas: backlog (API - Service), `design/03_cap_services.md` (si existe)
 - Salida: `srv/[modulo]/[modulo]-service.cds`
 
 Guardrails:
@@ -158,7 +160,7 @@ Guardrails:
 #### Fase 1.4 - Handlers CAP (Subagente)
 
 Lanzar subagente usando skill: `cap-code-generator` (modo: `handlers`).
-- Entradas: backlog (API - Service), `design/03_data_services.md` (si existe)
+- Entradas: backlog (API - Service), `design/03_cap_services.md` (si existe)
 - Salida: `srv/[modulo]/[modulo]-service.js|ts`
 
 Guardrails:

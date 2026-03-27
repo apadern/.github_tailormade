@@ -84,8 +84,8 @@ Antipatrones comunes que deben corregirse antes de validar:
 ## Prerrequisitos
 
 - `design/01_technical_design.md` - Diseño técnico con módulos
-- `design/02_data_model.md` - Modelo de datos
-- `design/03_data_services.md` - Especificación de servicios
+- `design/02_cap_data_model.md` - Modelo de datos CAP cuando el backend del módulo se implementa en CAP
+- `design/03_cap_services.md` - Especificación de servicios CAP cuando el backend del módulo se implementa en CAP
 - `analisis/03_requerimientos_funcionales.md` - RFs
 - `analisis/05_historias_usuario.md` - HUs con criterios de aceptación
 - `analisis/06_casos_uso.md` - Casos de uso (CUs)
@@ -97,6 +97,14 @@ Antipatrones comunes que deben corregirse antes de validar:
 Opcionales (si aplican al módulo):
 - `analisis/04_requerimientos_tecnicos.md` - Seguridad/SSO, rendimiento, requisitos no funcionales
 - `analisis/08_integraciones.md` - Integraciones SAP/CAP/ABAP y sincronizaciones
+- `design/02_abap_data_model.md` - Modelo de datos ABAP cuando el backend del módulo se implementa en ABAP
+- `design/03_odata_services.md` - Especificación OData cuando el backend del módulo se implementa en ABAP
+
+Regla de consumo documental:
+
+- Para módulos CAP, usar como cadena canónica `design/02_cap_data_model.md` + `design/03_cap_services.md`.
+- Para módulos ABAP, usar `design/02_abap_data_model.md` + `design/03_odata_services.md`.
+- No volver a referenciar la cadena genérica `design/02_data_model.md` + `design/03_data_services.md`.
 
 ## Parámetro de Entrada
 
@@ -180,6 +188,15 @@ Validación de integridad del backlog contra el diseño técnico y catálogo de 
 
 ```powershell
 python skills/backlog-planner/scripts/valida_integridad_diseno.py --backlog backlog/XX_[Modulo].md --module-scope <moduleSlug> --out backlog/check/XX_2_check_design_[Modulo].md
+```
+
+Notas:
+
+- Para módulos CAP, el validador usa por defecto `design/02_cap_data_model.md` y `design/03_cap_services.md`.
+- Para módulos ABAP, invocar explícitamente:
+
+```powershell
+python skills/backlog-planner/scripts/valida_integridad_diseno.py --backlog backlog/XX_[Modulo].md --module-scope <moduleSlug> --design02 design/02_abap_data_model.md --design03 design/03_odata_services.md --out backlog/check/XX_2_check_design_[Modulo].md
 ```
 
 Validación de completitud funcional contra prototipos (acciones "especiales" derivadas de `analisis/12_prototipos_interfaz.md`):
