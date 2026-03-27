@@ -7,9 +7,9 @@ Validador de integridad Backlog <-> Diseño (por módulo).
 Valida que un fichero de backlog del módulo contenga tareas que cubran:
 - Rutas UI del módulo (design/01_technical_design.md -> "Rutas UI (Frontend)")
 - Servicios expuestos del módulo (design/01_technical_design.md -> tabla de endpoints/servicios API u OData del backend)
-- Entidades del módulo (design/02_data_model.md -> "Catálogo de Entidades")
-- Enums asociados a entidades del módulo (design/02_data_model.md -> "Detalle por Entidad")
-- Servicios del módulo (design/03_data_services.md -> "Catálogo de Servicios")
+- Entidades del módulo (design/02_cap_data_model.md o design/02_abap_data_model.md -> "Catalogo de Entidades")
+- Enums asociados a entidades del módulo (design/02_cap_data_model.md o design/02_abap_data_model.md -> "Detalle por Entidad")
+- Servicios del módulo (design/03_cap_services.md o design/03_odata_services.md -> "Catalogo de Servicios")
 
 Uso:
     python skills/backlog-planner/scripts/valida_integridad_diseno.py ^
@@ -39,6 +39,16 @@ KIND_ENDPOINTS_API = "Endpoints API"
 KIND_ENTITIES = "Entidades"
 KIND_ENUMS = "Enums"
 KIND_SERVICES = "Servicios"
+
+DEFAULT_DESIGN02_CANDIDATES = (
+    Path("design/02_cap_data_model.md"),
+    Path("design/02_abap_data_model.md"),
+)
+
+DEFAULT_DESIGN03_CANDIDATES = (
+    Path("design/03_cap_services.md"),
+    Path("design/03_odata_services.md"),
+)
 
 
 def read_text(path: Path) -> str:
@@ -456,6 +466,22 @@ def derive_default_out(backlog_path: Path, module_scope: str) -> Path:
     return backlog_path.parent / f"check_design_00_{safe_module}.md"
 
 
+def resolve_design_path(explicit_path: Optional[Path], candidates: Sequence[Path], label: str) -> Path:
+    if explicit_path is not None:
+        return explicit_path
+
+    existing = [candidate for candidate in candidates if candidate.exists()]
+    if len(existing) == 1:
+        return existing[0]
+
+    if len(existing) == 0:
+        candidate_list = ", ".join(str(candidate) for candidate in candidates)
+        raise SystemExit(f"No se encontró {label}. Probar con una de estas rutas o pasar el parámetro explícito: {candidate_list}")
+
+    candidate_list = ", ".join(str(candidate) for candidate in existing)
+    raise SystemExit(f"Hay múltiples candidatos para {label}: {candidate_list}. Pasar el parámetro explícito correspondiente al backend del módulo.")
+
+
 def make_report(
     *,
     module_scope: str,
@@ -524,16 +550,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--backlog", type=Path, required=True, help="Fichero de backlog a validar (markdown).")
     parser.add_argument("--module-scope", required=True, help="Slug del módulo (p.ej. configuracion).")
     parser.add_argument("--design01", type=Path, default=Path("design/01_technical_design.md"))
-    parser.add_argument("--design02", type=Path, default=Path("design/02_data_model.md"))
-    parser.add_argument("--design03", type=Path, default=Path("design/03_data_services.md"))
+    parser.add_argument("--design02", type=Path, default=None)
+    parser.add_argument("--design03", type=Path, default=None)
     parser.add_argument("--out", type=Path, default=None, help="Ruta de salida del informe (markdown).")
     args = parser.parse_args(argv)
 
     backlog_path: Path = args.backlog
     module_scope: str = args.module_scope
     design01_path: Path = args.design01
-    design02_path: Path = args.design02
-    design03_path: Path = args.design03
+    design02_path: Path = resolve_design_path(args.design02, DEFAULT_DESIGN02_CANDIDATES, "Diseño 02")
+    design03_path: Path = resolve_design_path(args.design03, DEFAULT_DESIGN03_CANDIDATES, "Diseño 03")
     out_path: Path = args.out or derive_default_out(backlog_path, module_scope)
 
     if not backlog_path.exists():
