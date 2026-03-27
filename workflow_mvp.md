@@ -378,6 +378,14 @@ Antes de proponer CUALQUIER objeto Z, los subagentes DEBEN ejecutar busqueda en 
 - Salida: `design/03_odata_services.md` (no `design/03_data_services.md`).
 - Incluye: EntitySets, NavigationProperties, `$expand`, FunctionImports (V2) / Actions+Functions (V4), consumo SAPUI5.
 
+#### `abap-services-designer` (nuevo)
+- Archivo: `.github/skills/abap-services-designer/SKILL.md`
+- Especializado en servicios OData ABAP: SEGW (V2) y RAP (V4) de forma excluyente por objeto de negocio.
+- Fuente de datos: `design/02_abap_data_model.md`.
+- Salida: `design/03_abap_services.md`.
+- Incluye: EntitySets desde CDS Views, Associations/NavigationProperties, FunctionImports (V2) / Actions+Functions (V4 RAP), objetos de autorizacion ABAP (`AUTHORITY-CHECK`), parametros OData, errores DPC_EXT/RAP y patron de consumo SAPUI5.
+- Modos: `catalog`, `contracts`, `operations`, `auth`, `filters-errors`, `ui5-consumption`, `all`.
+
 #### `backlog-planner`
 - Archivo: `.github/skills/backlog-planner/SKILL.md`
 - Plantilla obligatoria: `.github/skills/backlog-planner/references/backlog-template.detallado.md`
@@ -641,7 +649,7 @@ Restriccion principal:
 |---|---|
 | Requirements_Extractor | text-extractor, image-analyzer |
 | Functional_Analyst | requirements-synthesizer, integrations-spec, user-stories-generator, ui-prototyper, mermaid-diagrams, bpmn-diagrams, functional-testing, traceability-validator, doc-assembler |
-| MVP_Design | technical-designer, abap-data-modeler, cap-data-modeler, ui5-data-modeler, services-designer, backlog-planner, traceability-validator |
+| MVP_Design | technical-designer, abap-data-modeler, cap-data-modeler, ui5-data-modeler, services-designer, abap-services-designer, cap-services-designer, backlog-planner, traceability-validator |
 | ABAP_DEV | abap_program_creator, abap_cds_creator, abap_data_element_creator, abap_domain_creator, abap_restful, abap_bapi, abap_atc_corrector |
 | CAP_DEV | cap-code-generator, cap-test-generator |
 | UI5_DEV | ui5-code-generator, ui-builder, ui5-test-generator |
