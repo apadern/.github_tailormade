@@ -49,10 +49,12 @@ Frontend — SAPUI5:
 Middleware — SAP CAP:
 - SAP Cloud Application Programming Model (CAP) — Node.js (preferido) o Java
 - CDS para definición de modelos y servicios (`.cds`)
-- Exposición como OData V4 (protocolo estándar hacia SAPUI5)
+- Exposición hacia SAPUI5: **siempre OData V4** (`/odata/v4/<servicio>`). Esta es la única versión permitida en la interfaz CAP → UI5.
 - Autenticación/autorización: XSUAA (SAP BTP) con atributos de rol
 - Integración con ABAP S/4HANA vía RFC, BAPI, OData ABAP (RAP) o API SAP estándar
-- **Consumo de APIs S/4HANA desde CAP**: preferir APIs OData V4 / RAP cuando estén disponibles. Si la API SAP estándar solo existe en OData V2, consumirla mediante `kind: 'rest'` (llamadas HTTP directas) o a través de un wrapper RFC/BAPI en lugar de `kind: 'odata-v2'`. **No usar `kind: 'odata-v2'` en el diseño técnico.**
+- **Consumo de APIs SAP S/4HANA estándar desde CAP (CAP → S4)**: las APIs estándar de S/4HANA se exponen en OData V2; en ese caso usar `kind: 'odata-v2'` en `cds.requires` es correcto y esperado. Si existe versión V4 / RAP equivalente, preferirla. **Regla de versiones:**
+  - SAPUI5 → CAP: **siempre OData V4**
+  - CAP → S/4HANA estándar: **OData V2** (salvo que exista API V4/RAP equivalente)
 
 Backend — ABAP S/4HANA:
 - ABAP Objects (clases, interfaces) en paquetes `Z<MODULO>`

@@ -301,12 +301,14 @@ Paso 4. Generar reporte: design/check_standard_first.md
    > "No hay servicio OData para crear facturas de proveedor, necesito tabla Z."
    
    Por qué es incorrecta:
-   - SAP tiene API_SUPPLIERINVOICE_PROCESS_SRV (existe en OData V2, pero debe consumirse desde CAP como `kind: 'rest'` o via RFC/BAPI wrapper — **no usar `kind: 'odata-v2'`**)
-   - SAP tiene I_SupplierInvoice (CDS View) que puede exponerse vía RAP como OData V4 — **preferir esta opción**
-   - Si no hay API V4 y solo existe V2 o BAPI, lo correcto es:
-       - Solo lectura: consumir la API V2 como REST (`kind: 'rest'`) desde CAP, o crear un Function Import RAP / SEGW
-       - Con escritura (POST): Behavior Definition RAP con llamada interna al BAPI, o REST wrapper
-       - **Nunca declarar `kind: 'odata-v2'` en cds.requires del diseño técnico**
+   - SAP tiene API_SUPPLIERINVOICE_PROCESS_SRV: es una API S/4HANA estándar OData V2 y **debe consumirse desde CAP con `kind: 'odata-v2'`** — esto es correcto y esperado para llamadas CAP → S4
+   - SAP tiene I_SupplierInvoice (CDS View) que puede exponerse vía RAP como OData V4 — preferir esta opción si está disponible
+   - **Regla de versiones (OBLIGATORIA):**
+       - SAPUI5 → CAP: **siempre OData V4**. El servicio CAP expone únicamente OData V4.
+       - CAP → S/4HANA estándar: **OData V2** usando `kind: 'odata-v2'` en `cds.requires`. Si existe API V4/RAP equivalente, usar V4.
+   - Si no hay API OData (ni V2 ni V4) y hay BAPI, lo correcto es:
+       - Solo lectura: Function Import SEGW / @ODataFunction RAP
+       - Con escritura (POST): Behavior Definition RAP con llamada interna al BAPI
    - SAP API Business Hub documenta APIs disponibles; verificar si existe versión V4 antes de usar V2
    
    Búsquedas que debieron hacerse (en orden):
