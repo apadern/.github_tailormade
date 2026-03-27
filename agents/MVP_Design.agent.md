@@ -371,15 +371,17 @@ Paso 6. Si Estado = OK:
 
 ### Fase 3: Servicios
 
-**Depende de**: Fase 2.5 exitosa (design/check_standard_first.md en estado OK)
-
-**BLOQUEADO hasta que Fase 2.5 esté completada**
+Depende de: Fase 2 (`design/02_abap_data_model.md` y `design/02_cap_data_model.md` deben existir para cubrir ambas ramas de servicios)
 
 | Subagente | Skill | Entrada | Salida |
 |-----------|-------|---------|--------|
-| `Services_Designer_Agent` | services-designer (**Modo B - SAP**) | design/01, design/02_abap_data_model.md, analisis/03, 09, 10, 12 (+ 05, 06, 08 si aplica) | design/03_odata_services.md |
+| `ABAP_Services_Designer_Agent` | abap-services-designer (**ABAP OData only**) | design/01, design/02_abap_data_model.md, analisis/03, 09, 10, 12 (+ 05, 06, 08 si aplica) | design/03_odata_services.md |
+| `CAP_Services_Designer_Agent` | cap-services-designer | design/01, design/02_cap_data_model.md, analisis/03, 05, 06, 08, 09, 10, 12 (+ backlog si existe) | design/03_cap_services.md |
 
-> **Nota SAP**: el skill services-designer detecta automáticamente el Modo B al encontrar `design/02_abap_data_model.md`. Genera EntitySets OData con sus NavigationProperties, FunctionImports (V2/SEGW) o Actions/Functions (V4/RAP), y el patrón de consumo desde SAPUI5 con `sap.ui.model.odata.v2.ODataModel` o `sap.ui.model.odata.v4.ODataModel`.
+> **Nota ABAP**: el skill `services-designer` queda reservado para la rama de servicios OData ABAP. Genera `design/03_odata_services.md` con EntitySets, NavigationProperties, FunctionImports (V2/SEGW) o Actions/Functions (V4/RAP) y el patrón de consumo desde SAPUI5.
+
+> **Nota CAP**: el skill `cap-services-designer` genera `design/03_cap_services.md` a partir de `design/02_cap_data_model.md`. Este documento es la referencia canónica para proyecciones CAP, actions/functions, filtros, auth, side effects, servicios remotos (`cds.requires`) y contratos OData V4 expuestos por CAP.
+
 
 ### Fase 4: Validación de Diseño
 
