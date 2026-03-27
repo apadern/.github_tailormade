@@ -52,6 +52,7 @@ Middleware — SAP CAP:
 - Exposición como OData V4 (protocolo estándar hacia SAPUI5)
 - Autenticación/autorización: XSUAA (SAP BTP) con atributos de rol
 - Integración con ABAP S/4HANA vía RFC, BAPI, OData ABAP (RAP) o API SAP estándar
+- **Consumo de APIs S/4HANA desde CAP**: preferir APIs OData V4 / RAP cuando estén disponibles. Si la API SAP estándar solo existe en OData V2, consumirla mediante `kind: 'rest'` (llamadas HTTP directas) o a través de un wrapper RFC/BAPI en lugar de `kind: 'odata-v2'`. **No usar `kind: 'odata-v2'` en el diseño técnico.**
 
 Backend — ABAP S/4HANA:
 - ABAP Objects (clases, interfaces) en paquetes `Z<MODULO>`
@@ -72,8 +73,8 @@ Máximo 15 líneas describiendo alcance y enfoque.
 - Supuestos del MVP: persistencia en SAP HANA (vía CAP/HDI) o tablas ABAP Z, seguridad mediante XSUAA (BTP) y `AUTHORITY-CHECK` en ABAP, documentación CDS/OData metadata, integraciones con SAP estándar (BAPIs/APIs) si están en alcance.
 - Modelo dual frontend: por defecto **frontend-only (mock con localService/)** y opción de conectar al OData CAP real sin cambiar las vistas.
 - Referencias cruzadas:
-	- El detalle de entidades CDS y tablas ABAP vive en `design/02_data_model.md`.
-	- El detalle de entidades OData, acciones/funciones y contratos vive en `design/03_data_services.md`.
+	- El detalle de entidades CDS y tablas ABAP vive en `design/02_abap_data_model.md`, `design/02_cap_data_model.md` y `design/02_ui5_data_model.md`.
+	- El detalle de entidades OData, acciones/funciones y contratos vive en `design/03_odata_services.md`.
 
 ### 2. Arquitectura Modular
 
